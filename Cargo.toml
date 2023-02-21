@@ -1,6 +1,6 @@
 [package]
 name = "spaceapi-dezentrale"
-version = "0.8.2-rc1.1"
+version = "0.8.999"
 repository = "https://github.com/dezentrale/spaceapi-rs/"
 license = "MIT OR Apache-2.0"
 authors = [
