@@ -19,7 +19,7 @@ This library requires Rust 1.36.0 or newer.
 Add `spaceapi-dezentrale` to your `Cargo.toml`:
 
     [dependencies]
-    spaceapi-dezentrale = "^0.8.2-rc1"
+    spaceapi-dezentrale = "^0.8.2-rc1.1"
 
 
 ## Docs
