@@ -1,12 +1,14 @@
 [package]
 name = "spaceapi"
-version = "0.8.1"
+version = "0.8.2"
 repository = "https://github.com/spaceapi-community/spaceapi-rs/"
 license = "MIT OR Apache-2.0"
 authors = [
     "Raphael Nestler <raphael.nestler@gmail.com>",
     "Danilo Bargen <mail@dbrgn.ch>",
     "Stefan Schindler <stefan@estada.ch>",
+    "MoKe12g",
+    "mrtuxa <mrtuxa@leipzig.freifunk.net"
 ]
 description = "SpaceAPI types and serialization/deserialization."
 readme = "README.md"
