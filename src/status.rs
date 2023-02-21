@@ -182,7 +182,7 @@ pub enum IssueReportChannel {
     IssueMail,
     Twitter,
     Ml,
-    Matrix
+    Matrix,
 }
 
 #[derive(Serialize, Deserialize, Default, Debug, Clone, PartialEq, Eq)]
