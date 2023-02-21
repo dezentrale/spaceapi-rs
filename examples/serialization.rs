@@ -1,4 +1,4 @@
-use spaceapi::{Contact, IssueReportChannel, Location, State, StatusBuilder};
+use spaceapi_dezentrale::{Contact, IssueReportChannel, Location, State, StatusBuilder};
 
 fn main() {
     let status = StatusBuilder::mixed("coredump")

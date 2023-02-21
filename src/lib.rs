@@ -12,7 +12,7 @@
 //!
 //! If you want to implement a SpaceAPI server on top of these types, you
 //! might want to take a look at the [`spaceapi_server`
-//! crate](https://github.com/spaceapi-community/spaceapi-server-rs).
+//! crate](https://github.com/dezentrale/spaceapi-rs).
 //!
 //! This library requires Rust 1.20.0 or newer.
 //!
@@ -23,7 +23,7 @@
 //! You can create a new `Status` instance by using the `StatusBuilder`.
 //!
 //!     use serde_json;
-//!     use spaceapi::{State, Status, StatusBuilder, Location, Contact, IssueReportChannel};
+//!     use spaceapi_dezentrale::{State, Status, StatusBuilder, Location, Contact, IssueReportChannel};
 //!
 //!     # fn main() {
 //!     let status = StatusBuilder::new("coredump")
@@ -36,6 +36,7 @@
 //!         .location(
 //!             Location {
 //!                 address: None,
+//!                 osm_link: None,
 //!                 lat: 47.22936,
 //!                 lon: 8.82949,
 //!                 ..Default::default()
@@ -50,6 +51,7 @@
 //!             })
 //!         .add_issue_report_channel(IssueReportChannel::Email)
 //!         .add_issue_report_channel(IssueReportChannel::Twitter)
+//!         .add_issue_report_channel(IssueReportChannel::Matrix)
 //!         .build()
 //!         .expect("Creating status failed");
 //!     let serialized = serde_json::to_string(&status).unwrap();
@@ -64,7 +66,7 @@
 //! You can deserialize any struct of the SpaceAPI through Serde:
 //!
 //!     use serde_json;
-//!     use spaceapi::Location;
+//!     use spaceapi_dezentrale::Location;
 //!
 //!     # fn main() {
 //!     let location = "{\"lat\": 47.22936, \"lon\": 8.82949}";
@@ -72,7 +74,7 @@
 //!     println!("{:?}", decoded);
 //!
 //!     // Output:
-//!     // Location { address: None, lat: 47.22936000000001, lon: 8.829490000000002, timezone: None }
+//!     // Location { address: None, osm_link: None, lat: 47.22936000000001, lon: 8.829490000000002, timezone: None }
 //!     # }
 
 pub mod sensors;
