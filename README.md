@@ -16,10 +16,10 @@ This library requires Rust 1.36.0 or newer.
 
 ## Usage
 
-Add `spaceapi` to your `Cargo.toml`:
+Add `spaceapi-dezentrale` to your `Cargo.toml`:
 
     [dependencies]
-    spaceapi-dezentrale = "^0.8.2"
+    spaceapi-dezentrale = "^0.8.2-rc1"
 
 
 ## Docs
