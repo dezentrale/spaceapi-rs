@@ -1,5 +1,4 @@
 use clap::Command;
-use spaceapi_dezentrale_client;
 
 #[tokio::main]
 async fn main() {
