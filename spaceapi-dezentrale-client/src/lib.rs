@@ -4,6 +4,7 @@ extern crate rocket;
 use reqwest::StatusCode;
 use spaceapi_dezentrale::Status;
 
+#[derive(Default)]
 pub struct ClientBuilder<'a> {
     api_key: Option<&'a str>,
     base_url: Option<&'a str>,
