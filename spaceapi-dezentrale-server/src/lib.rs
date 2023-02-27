@@ -1,15 +1,15 @@
 #[macro_use]
 extern crate rocket;
 
+use rand::RngCore;
 use rocket::{
-    Rocket, Build, State,
     http::Status,
     outcome::Outcome,
-    request::{self, Request, FromRequest},
-    serde::{Serialize, Deserialize, json::Json},
-    tokio::sync::RwLock
+    request::{self, FromRequest, Request},
+    serde::{json::Json, Deserialize, Serialize},
+    tokio::sync::RwLock,
+    Build, Rocket, State,
 };
-use rand::{RngCore};
 use serde_yaml;
 use spaceapi_dezentrale;
 use std::{
@@ -76,15 +76,14 @@ impl SpaceConfig {
         P: AsRef<std::path::Path> + std::fmt::Display,
     {
         log::info!("Read config file `{}`", path);
-        let mut file = std::fs::File::open(path)
-            .map_err(|err| format!("Can't open file: {err:?}"))?;
+        let mut file = std::fs::File::open(path).map_err(|err| format!("Can't open file: {err:?}"))?;
         let mut file_buf = vec![];
         file.read_to_end(&mut file_buf)
             .map_err(|err| format!("Can't read file: {err:?}"))?;
 
-        let mut config: SpaceConfig = serde_yaml::from_slice(&file_buf)
-            .map_err(|err| format!("Can't parse space config: {err}"))?;
-        config.publish.state = Some(spaceapi_dezentrale::State  {
+        let mut config: SpaceConfig =
+            serde_yaml::from_slice(&file_buf).map_err(|err| format!("Can't parse space config: {err}"))?;
+        config.publish.state = Some(spaceapi_dezentrale::State {
             open: Some(false),
             lastchange: Some(unix_timestamp()),
             ..spaceapi_dezentrale::State::default()
@@ -116,7 +115,7 @@ impl SpaceGuard {
             return Err(());
         }
 
-        let state = spaceapi_dezentrale::State  {
+        let state = spaceapi_dezentrale::State {
             open: Some(true),
             lastchange: Some(unix_timestamp()),
             ..spaceapi_dezentrale::State::default()
@@ -132,7 +131,7 @@ impl SpaceGuard {
             return Err(());
         }
 
-        let state = spaceapi_dezentrale::State  {
+        let state = spaceapi_dezentrale::State {
             open: Some(false),
             lastchange: Some(unix_timestamp()),
             ..spaceapi_dezentrale::State::default()
@@ -158,7 +157,7 @@ pub async fn open_space(api_key: ApiKey, space: &State<SpaceGuard>) -> rocket::h
 }
 
 #[post("/admin/publish/space-close")]
-pub async fn close_space(api_key: ApiKey, space: &State<SpaceGuard>) -> rocket::http::Status{
+pub async fn close_space(api_key: ApiKey, space: &State<SpaceGuard>) -> rocket::http::Status {
     match space.close(api_key).await {
         Ok(_) => rocket::http::Status::Ok,
         Err(_) => rocket::http::Status::Unauthorized,
@@ -171,20 +170,13 @@ pub async fn get_status_v14(space: &State<SpaceGuard>) -> Json<spaceapi_dezentra
 }
 
 pub fn serve(config: SpaceConfig) -> Rocket<Build> {
-    let mut routes = routes![
-        get_status_v14,
-    ];
+    let mut routes = routes![get_status_v14,];
 
     if config.admin.enabled {
-        routes.extend(routes![
-            open_space,
-            close_space,
-        ]);
+        routes.extend(routes![open_space, close_space,]);
     }
 
-    rocket::build()
-        .manage(SpaceGuard::new(config))
-        .mount("/", routes)
+    rocket::build().manage(SpaceGuard::new(config)).mount("/", routes)
 }
 
 #[cfg(test)]
@@ -194,7 +186,7 @@ mod test {
         http::{Header, Status},
         local::asynchronous::Client,
         tokio,
-    }; 
+    };
 
     pub(crate) fn sample_config(admin_enabled: bool) -> SpaceConfig {
         let admin = if admin_enabled {
@@ -222,10 +214,7 @@ mod test {
     }
 
     pub(crate) async fn tester(config: SpaceConfig) -> Client {
-        let rocket = serve(config)
-            .ignite()
-            .await
-            .expect("A server");
+        let rocket = serve(config).ignite().await.expect("A server");
         let client = Client::tracked(rocket).await.expect("A client");
         client
     }
@@ -241,10 +230,7 @@ mod test {
     }
 
     fn admin_routes() -> Vec<String> {
-        vec![
-            uri!(open_space()).to_string(),
-            uri!(close_space()).to_string(),
-        ]
+        vec![uri!(open_space()).to_string(), uri!(close_space()).to_string()]
     }
 
     #[tokio::test]
@@ -261,7 +247,8 @@ mod test {
         let client = tester(sample_config(true)).await;
 
         for route in admin_routes() {
-            let response = client.post(route)
+            let response = client
+                .post(route)
                 .header(Header::new("X-API-KEY", "sesame"))
                 .dispatch()
                 .await;
@@ -274,7 +261,8 @@ mod test {
         let client = tester(sample_config(true)).await;
 
         for route in admin_routes() {
-            let response = client.post(route)
+            let response = client
+                .post(route)
                 .header(Header::new("X-API-KEY", "sesame-open"))
                 .dispatch()
                 .await;

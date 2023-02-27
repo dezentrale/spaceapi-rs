@@ -1,8 +1,8 @@
 #[macro_use]
 extern crate rocket;
 
-use spaceapi_dezentrale::Status;
 use reqwest::StatusCode;
+use spaceapi_dezentrale::Status;
 
 pub struct ClientBuilder<'a> {
     api_key: Option<&'a str>,
@@ -53,10 +53,14 @@ pub struct Client {
 
 impl Client {
     pub async fn open(&self) -> Result<(), String> {
-        let url = format!("{}{}",
+        let url = format!(
+            "{}{}",
             self.base_url,
-            uri!(spaceapi_dezentrale_server::open_space()));
-        let result = self.client.post(url)
+            uri!(spaceapi_dezentrale_server::open_space())
+        );
+        let result = self
+            .client
+            .post(url)
             .header("X-API-KEY", &self.api_key)
             .send()
             .await
@@ -65,14 +69,18 @@ impl Client {
             StatusCode::OK => Ok(()),
             StatusCode::UNAUTHORIZED => Err("Wrong API-Key provided, request denied".to_string()),
             other => Err(format!("Unexpected status code return: {other}")),
-        } 
+        }
     }
 
     pub async fn close(&self) -> Result<(), String> {
-        let url = format!("{}{}",
+        let url = format!(
+            "{}{}",
             self.base_url,
-            uri!(spaceapi_dezentrale_server::close_space()));
-        let result = self.client.post(url)
+            uri!(spaceapi_dezentrale_server::close_space())
+        );
+        let result = self
+            .client
+            .post(url)
             .header("X-API-KEY", &self.api_key)
             .send()
             .await
@@ -81,14 +89,17 @@ impl Client {
             StatusCode::OK => Ok(()),
             StatusCode::UNAUTHORIZED => Err("Wrong API-Key provided, request denied".to_string()),
             other => Err(format!("Unexpected status code return: {other}")),
-        } 
+        }
     }
 
     pub async fn status(&self) -> Result<Status, String> {
-        let url = format!("{}{}",
+        let url = format!(
+            "{}{}",
             self.base_url,
-            uri!(spaceapi_dezentrale_server::get_status_v14()));
-        self.client.get(url)
+            uri!(spaceapi_dezentrale_server::get_status_v14())
+        );
+        self.client
+            .get(url)
             .header("X-API-KEY", &self.api_key)
             .send()
             .await
@@ -99,10 +110,14 @@ impl Client {
     }
 
     pub async fn is_open(&self) -> Result<bool, String> {
-        let url = format!("{}/{}",
+        let url = format!(
+            "{}/{}",
             self.base_url,
-            uri!(spaceapi_dezentrale_server::get_status_v14()));
-        let status = self.client.get(url)
+            uri!(spaceapi_dezentrale_server::get_status_v14())
+        );
+        let status = self
+            .client
+            .get(url)
             .header("X-API-KEY", &self.api_key)
             .send()
             .await

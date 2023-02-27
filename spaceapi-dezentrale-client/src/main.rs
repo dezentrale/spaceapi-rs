@@ -1,5 +1,5 @@
-use spaceapi_dezentrale_client;
 use clap::Command;
+use spaceapi_dezentrale_client;
 
 #[tokio::main]
 async fn main() {
@@ -23,22 +23,22 @@ async fn main() {
     match args.subcommand_name() {
         Some("open") => {
             client.open().await.expect("Open failed");
-        },
+        }
         Some("close") => {
             client.close().await.expect("Close failed");
-        },
+        }
         Some("is-open") => {
             if client.is_open().await.expect("Request failed") {
                 println!("open");
             } else {
                 println!("closed");
             }
-        },
+        }
         Some(other) => {
             println!("Unknown command `{other}`");
-        },
+        }
         None => {
             println!("Specifiy one command");
-        },
+        }
     };
 }
