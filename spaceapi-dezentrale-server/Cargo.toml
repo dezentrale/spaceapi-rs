@@ -19,7 +19,3 @@ rocket.workspace = true
 spaceapi-dezentrale.workspace = true
 serde.workspace = true
 serde_yaml.workspace = true
-
-[[bin]]
-name = "spaceapi-server"
-path = "src/main.rs"
