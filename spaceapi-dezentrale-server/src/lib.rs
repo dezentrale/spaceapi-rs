@@ -3,10 +3,20 @@ extern crate rocket;
 
 use rand::RngCore;
 use rocket::{
-    http::Status,
+    fairing::{Fairing, Kind, Info},
+    http::{
+        ContentType, Header, Status,
+        hyper::header::{
+            ACCESS_CONTROL_ALLOW_CREDENTIALS,
+            ACCESS_CONTROL_ALLOW_HEADERS,
+            ACCESS_CONTROL_ALLOW_METHODS,
+            ACCESS_CONTROL_ALLOW_ORIGIN,
+        },
+    },
     outcome::Outcome,
     request::{self, FromRequest, Request},
-    serde::{json::Json, Deserialize, Serialize},
+    response::Response,
+    serde::{Deserialize, Serialize, json::Json},
     tokio::sync::RwLock,
     Build, Rocket, State,
 };
@@ -17,6 +27,9 @@ use std::{
     time::{SystemTime, UNIX_EPOCH},
 };
 
+const SOFTWARE: &str = std::env!("CARGO_PKG_NAME");
+const VERSION: &str = std::env!("CARGO_PKG_VERSION");
+
 fn unix_timestamp() -> u64 {
     SystemTime::now()
         .duration_since(UNIX_EPOCH)
@@ -26,6 +39,14 @@ fn unix_timestamp() -> u64 {
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ApiKey(String);
+
+impl ApiKey {
+    pub fn generate() -> Self {
+        let mut rng = rand::thread_rng();
+        let key = format!("{:16x}{:16x}", rng.next_u64(), rng.next_u64());
+        ApiKey(key)
+    }
+}
 
 impl FromStr for ApiKey {
     type Err = ();
@@ -45,10 +66,15 @@ impl<'r> FromRequest<'r> for ApiKey {
     type Error = &'static str;
 
     async fn from_request(req: &'r Request<'_>) -> request::Outcome<Self, Self::Error> {
-        match req.headers().get_one("X-API-Key") {
-            Some(api_key) => Outcome::Success(ApiKey(api_key.to_string())),
-            None => Outcome::Failure((Status::Unauthorized, "Api key missing")),
+        if let Some(api_key) = req.headers().get_one("X-API-Key") {
+            if let Some(api_key_config) = req.rocket().state::<ApiKey>() {
+                if &api_key == &api_key_config.0 {
+                    return Outcome::Success(ApiKey(api_key.to_string()))
+                }
+            }
         }
+        
+        Outcome::Failure((Status::Unauthorized, "Api key missing"))
     }
 }
 
@@ -69,7 +95,7 @@ pub struct SpaceConfig {
 }
 
 impl SpaceConfig {
-    pub fn from_file<P>(path: P) -> Result<SpaceConfig, String>
+    pub fn load<P>(path: P) -> Result<SpaceConfig, String>
     where
         P: AsRef<std::path::Path> + std::fmt::Display,
     {
@@ -81,100 +107,157 @@ impl SpaceConfig {
 
         let mut config: SpaceConfig =
             serde_yaml::from_slice(&file_buf).map_err(|err| format!("Can't parse space config: {err}"))?;
-        config.publish.state = Some(spaceapi_dezentrale::State {
-            open: Some(false),
-            lastchange: Some(unix_timestamp()),
-            ..spaceapi_dezentrale::State::default()
-        });
+        // Clear state
+        config.publish.state = None;
 
-        if config.admin.enabled && config.admin.api_key.is_none() {
-            log::error!("API key isn't set. Generating a random one");
-            let mut rng = rand::thread_rng();
-            let key = format!("{:16x}{:16x}", rng.next_u64(), rng.next_u64());
-            println!("Generated key is: {key}");
-            config.admin.api_key = Some(ApiKey(key));
+        if config.admin.api_key.is_none() {
+            let key = ApiKey::generate();
+            if config.admin.enabled {
+                log::error!("API key isn't set. Generated a random one: {}", key.0);
+            }
+            config.admin.api_key = Some(key);
         }
 
         Ok(config)
     }
 }
 
-pub struct SpaceGuard(Arc<RwLock<SpaceConfig>>);
+pub struct SpaceState {
+    pub open: bool,
+}
+
+pub struct SpaceGuard(Arc<RwLock<SpaceState>>);
 
 impl SpaceGuard {
-    pub fn new(space: SpaceConfig) -> Self {
+    pub fn new() -> Self {
+        let space = SpaceState {
+            open: false,
+        };
         SpaceGuard(Arc::new(RwLock::new(space)))
     }
 
-    pub async fn open(&self, key: ApiKey) -> Result<(), ()> {
+    pub async fn open(&self) {
         let mut space = self.0.write().await;
-
-        if &key != space.admin.api_key.as_ref().unwrap() {
-            return Err(());
-        }
-
-        let state = spaceapi_dezentrale::State {
-            open: Some(true),
-            lastchange: Some(unix_timestamp()),
-            ..spaceapi_dezentrale::State::default()
-        };
-        space.publish.state = Some(state);
-        Ok(())
+        space.open = true;
     }
 
-    pub async fn close(&self, key: ApiKey) -> Result<(), ()> {
+    pub async fn close(&self) {
         let mut space = self.0.write().await;
-
-        if &key != space.admin.api_key.as_ref().unwrap() {
-            return Err(());
-        }
-
-        let state = spaceapi_dezentrale::State {
-            open: Some(false),
-            lastchange: Some(unix_timestamp()),
-            ..spaceapi_dezentrale::State::default()
-        };
-        space.publish.state = Some(state);
-        Ok(())
+        space.open = false;
     }
 
-    pub async fn spaceapi_v14(&self) -> spaceapi_dezentrale::Status {
+    pub async fn is_open(&self) -> bool {
         let space = self.0.read().await;
-        let mut status = space.publish.clone();
-        status.api_compatibility = Some(vec![spaceapi_dezentrale::ApiVersion::V14]);
-        status
+        space.open
     }
 }
 
 #[post("/admin/publish/space-open")]
-pub async fn open_space(api_key: ApiKey, space: &State<SpaceGuard>) -> rocket::http::Status {
-    match space.open(api_key).await {
-        Ok(_) => rocket::http::Status::Ok,
-        Err(_) => rocket::http::Status::Unauthorized,
-    }
+pub async fn open_space(_api_key: ApiKey, space: &State<SpaceGuard>) {
+    space.open().await;
 }
 
 #[post("/admin/publish/space-close")]
-pub async fn close_space(api_key: ApiKey, space: &State<SpaceGuard>) -> rocket::http::Status {
-    match space.close(api_key).await {
-        Ok(_) => rocket::http::Status::Ok,
-        Err(_) => rocket::http::Status::Unauthorized,
-    }
+pub async fn close_space(_api_key: ApiKey, space: &State<SpaceGuard>) {
+    space.close().await;
+}
+
+/// Minimalistic implementation of the index page
+#[get("/")]
+pub async fn index(space: &State<SpaceGuard>, template: &State<spaceapi_dezentrale::Status>) -> (ContentType, String) {
+    let name = &template.space;
+    let logo = &template.logo;
+    let open = if space.is_open().await { "open" } else { "closed" };
+
+    let html = format!(r#"<html>
+        <body>
+            <center>
+                <img src="{logo}" alt="{name}"></img>
+                <div>Space is {open}</div>
+                <div><a href="https://github.com/dezentrale/spaceapi-rs">{SOFTWARE} v{VERSION}</a></div>
+            </center>
+        </body>
+    </html>
+    "#);
+    (ContentType::HTML, html)
 }
 
 #[get("/spaceapi/v14")]
-pub async fn get_status_v14(space: &State<SpaceGuard>) -> Json<spaceapi_dezentrale::Status> {
-    Json(space.spaceapi_v14().await)
+pub async fn get_status_v14<'a>(space: &State<SpaceGuard>, template: &State<spaceapi_dezentrale::Status>) -> Json<spaceapi_dezentrale::Status> {
+    let mut status = template.inner().clone();
+    status.api_compatibility = Some(vec![spaceapi_dezentrale::ApiVersion::V14]);
+    status.state = Some(spaceapi_dezentrale::State {
+        open: Some(space.is_open().await),
+        lastchange: Some(unix_timestamp()),
+        ..spaceapi_dezentrale::State::default()
+    });
+    Json(status)
+}
+
+#[get("/space-open")]
+pub async fn get_status_html<'a>(space: &State<SpaceGuard>) -> (ContentType, &'static str) {
+    let status = if space.is_open().await {
+        "open"
+    } else {
+        "close"
+    };
+    (ContentType::HTML, status)
+}
+
+/// OPTION fallback handler required for CORS
+#[options("/<_..>")]
+fn options_catch_all() { }
+
+pub struct Cors;
+
+/// Implementation for CORS
+///
+/// Inspired by
+/// [Stackoverflow](https://stackoverflow.com/questions/62412361/how-to-set-up-cors-or-options-for-rocket-rs)
+#[rocket::async_trait]
+impl Fairing for Cors {
+    fn info(&self) -> Info {
+        Info {
+            name: "CORS Settings",
+            kind: Kind::Response,
+        }
+    }
+
+    async fn on_response<'a>(&self, _request: &'a Request<'_>, response: &mut Response<'a>) {
+        // Allow GET from all locations
+        response.set_header(Header::new(ACCESS_CONTROL_ALLOW_CREDENTIALS.as_str(), "true"));
+        response.set_header(Header::new(ACCESS_CONTROL_ALLOW_HEADERS.as_str(), "*"));
+        response.set_header(Header::new(ACCESS_CONTROL_ALLOW_METHODS.as_str(), "*"));
+        response.set_header(Header::new(ACCESS_CONTROL_ALLOW_ORIGIN.as_str(), "*"));
+    }
 }
 
 pub fn serve(config: SpaceConfig) -> Rocket<Build> {
-    let mut routes = routes![get_status_v14,];
+    let mut routes = routes![
+        get_status_v14,
+        get_status_html,
+        index,
+        options_catch_all,
+    ];
 
     if config.admin.enabled {
-        routes.extend(routes![open_space, close_space,]);
+        routes.extend(routes![open_space, close_space]);
     }
 
-    rocket::build().manage(SpaceGuard::new(config)).mount("/", routes)
+    let rocket = rocket::build()
+        .attach(Cors)
+        // Add loaded template for spaceapi publishing
+        .manage(config.publish)
+        // Add Space state
+        .manage(SpaceGuard::new())
+        .mount("/", routes);
+
+    if config.admin.enabled {
+        // Add API-KEY for admin interface
+        rocket.manage(config.admin.api_key.unwrap_or(ApiKey::generate()))
+    } else {
+        rocket
+    }
 }
 
 #[cfg(test)]
