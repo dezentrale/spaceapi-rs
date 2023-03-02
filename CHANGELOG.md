@@ -7,6 +7,7 @@
 * Template for publishing state is handled as extra state
 * Added CORS handling
 * Added a minimalistic index page
+* Added support for TLS for client
 
 ## v0.9
 
