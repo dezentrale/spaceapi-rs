@@ -9,9 +9,10 @@ on:
 env:
   RUST_VERSION: "1.67"
 
+runs-on: ubuntu-22.04
+
 jobs:
   test:
-    runs-on: ubuntu-22.04
     container: rust:${{ env.RUST_VERSION }}
     steps:
       - uses: actions/checkout@v3
@@ -24,7 +25,6 @@ jobs:
           - buster
           - bullseye
           - bookworm
-    runs-on: ubuntu-22.04
     container: rust:${{ env.RUST_VERSION }}-${{ matrix.debian_release }}
     steps:
       - name: Checkout repository
@@ -45,7 +45,6 @@ jobs:
             target/release/spaceapi-dezentrale-server
      
   lint:
-    runs-on: ubuntu-22.04
     container: rust:${{ env.RUST_VERSION }}
     steps:
       - uses: actions/checkout@v3
