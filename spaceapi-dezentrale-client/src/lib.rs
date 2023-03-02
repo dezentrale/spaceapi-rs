@@ -10,11 +10,7 @@ pub struct ClientBuilder<'a> {
     base_url: Option<&'a str>,
 }
 
-pub const USER_AGENT: &str = concat!(
-    std::env!("CARGO_PKG_NAME"),
-    "/",
-    std::env!("CARGO_PKG_VERSION")
-);
+pub const USER_AGENT: &str = concat!(std::env!("CARGO_PKG_NAME"), "/", std::env!("CARGO_PKG_VERSION"));
 
 impl<'a> ClientBuilder<'a> {
     pub fn new() -> Self {
