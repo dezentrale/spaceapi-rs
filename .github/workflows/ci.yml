@@ -12,7 +12,7 @@ env:
 jobs:
   test:
     runs-on: ubuntu-22.04
-    container: rust:${{ vars.RUST_VERSION }}
+    container: rust:${{ env.RUST_VERSION }}
     steps:
       - uses: actions/checkout@v3
       - run: cargo test
@@ -25,7 +25,7 @@ jobs:
           - bullseye
           - bookworm
     runs-on: ubuntu-22.04
-    container: rust:${{ var.RUST_VERSION }}-${{ matrix.debian_release }}
+    container: rust:${{ env.RUST_VERSION }}-${{ matrix.debian_release }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3A
@@ -46,7 +46,7 @@ jobs:
      
   lint:
     runs-on: ubuntu-22.04
-    container: rust:${{ var.RUST_VERSION }}
+    container: rust:${{ env.RUST_VERSION }}
     steps:
       - uses: actions/checkout@v3
       - run: rustup component add clippy
@@ -54,7 +54,7 @@ jobs:
 
   fmt:
     runs-on: ubuntu-22.04
-    container: rust:${{ var.RUST_VERSION }}
+    container: rust:${{ env.RUST_VERSION }}
     steps:
       - uses: actions/checkout@v3
       - run: rustup component add rustfmt
