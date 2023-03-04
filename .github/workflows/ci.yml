@@ -28,7 +28,7 @@ jobs:
     container: rust:${{ matrix.version }}-${{ matrix.variant }}
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v3A
+        uses: actions/checkout@v3
 
       - name: Build binaries
         run: |
