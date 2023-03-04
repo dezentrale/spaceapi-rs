@@ -10,10 +10,10 @@ env:
   RUST_VERSION: "1.67"
 
 #runs-on: ubuntu-22.04
-runs-on: self-hosted
 
 jobs:
   test:
+    runs-on: self-hosted
     container: rust:${{ env.RUST_VERSION }}
     steps:
       - uses: actions/checkout@v3
