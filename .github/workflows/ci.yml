@@ -6,15 +6,12 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  RUST_VERSION: "1.67"
-
 #runs-on: ubuntu-22.04
+runs-on: self-hosted
 
 jobs:
   test:
-    runs-on: self-hosted
-    container: rust:${{ env.RUST_VERSION }}
+    container: rust:latest
     steps:
       - uses: actions/checkout@v3
       - run: cargo test
@@ -22,11 +19,13 @@ jobs:
   binaries_x86-64:
     strategy:
       matrix:
-        debian_release:
+        version:
+          - "1.67"
+        variant:
           - buster
           - bullseye
           - bookworm
-    container: rust:${{ env.RUST_VERSION }}-${{ matrix.debian_release }}
+    container: rust:${{ matrix.version }}-${{ matrix.variant }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3A
@@ -37,16 +36,16 @@ jobs:
           DEBCONF_FRONTEND=noninteractive apt-get upgrades -y
           cargo build --release
 
-      - name: Archive binaries debian/${{ matrix.debian_release }} x86_64
+      - name: Archive binaries debian/${{ matrix.variant }} x86_64
         uses: actions/upload-artifact@v3
         with:
-          name: debian-${{ matrix.debian_release }}
+          name: debian-${{ matrix.variant }}
           path: |
             target/release/spaceapi-dezentrale-client
             target/release/spaceapi-dezentrale-server
      
   lint:
-    container: rust:${{ env.RUST_VERSION }}
+    container: rust:latest
     steps:
       - uses: actions/checkout@v3
       - run: rustup component add clippy
@@ -54,7 +53,7 @@ jobs:
 
   fmt:
     runs-on: ubuntu-22.04
-    container: rust:${{ env.RUST_VERSION }}
+    container: rust:latest
     steps:
       - uses: actions/checkout@v3
       - run: rustup component add rustfmt
