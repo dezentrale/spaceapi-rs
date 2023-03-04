@@ -33,7 +33,7 @@ jobs:
       - name: Build binaries
         run: |
           apt-get update
-          DEBCONF_FRONTEND=noninteractive apt-get upgrades -y
+          DEBCONF_FRONTEND=noninteractive apt-get upgrade -y
           cargo build --release
 
       - name: Archive binaries debian/${{ matrix.variant }} x86_64
