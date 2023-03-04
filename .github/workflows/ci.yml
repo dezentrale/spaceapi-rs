@@ -6,11 +6,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
-#runs-on: ubuntu-22.04
-runs-on: self-hosted
 
 jobs:
   test:
+    runs-on: self-hosted
     container: rust:latest
     steps:
       - uses: actions/checkout@v3
@@ -25,6 +24,7 @@ jobs:
           - buster
           - bullseye
           - bookworm
+    runs-on: self-hosted
     container: rust:${{ matrix.version }}-${{ matrix.variant }}
     steps:
       - name: Checkout repository
@@ -45,6 +45,7 @@ jobs:
             target/release/spaceapi-dezentrale-server
      
   lint:
+    runs-on: self-hosted
     container: rust:latest
     steps:
       - uses: actions/checkout@v3
@@ -52,7 +53,7 @@ jobs:
       - run: cargo clippy --all-targets --all-features -- -D warnings
 
   fmt:
-    runs-on: ubuntu-22.04
+    runs-on: self-hosted
     container: rust:latest
     steps:
       - uses: actions/checkout@v3
