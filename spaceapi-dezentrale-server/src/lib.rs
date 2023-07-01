@@ -86,12 +86,48 @@ pub struct AdminConfig {
     enabled: bool,
 }
 
+fn default_status_display_open() -> String {
+    "open".to_string()
+}
+
+fn default_status_display_closed() -> String {
+    "closed".to_string()
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct StatusDisplay {
+    #[serde(default = "default_status_display_open", rename = "open")]
+    open: String,
+    #[serde(default = "default_status_display_closed", rename = "closed")]
+    closed: String,
+}
+
+impl Default for StatusDisplay {
+    fn default() -> Self {
+        StatusDisplay {
+            open: "open".to_string(),
+            closed: "closed".to_string(),
+        }
+    }
+}
+
+#[derive(Debug, Default, Serialize, Deserialize)]
+pub struct StatusDisplayTypes {
+    #[serde(default, rename = "text")]
+    text: StatusDisplay,
+    #[serde(default, rename = "html")]
+    html: StatusDisplay,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SpaceConfig {
     #[serde(rename = "publish")]
     pub publish: spaceapi_dezentrale::Status,
     #[serde(default, rename = "admin")]
     pub admin: AdminConfig,
+    #[serde(default, rename = "status_display")]
+    pub status_display: StatusDisplayTypes,
+
 }
 
 impl SpaceConfig {
@@ -117,7 +153,6 @@ impl SpaceConfig {
             }
             config.admin.api_key = Some(key);
         }
-
         Ok(config)
     }
 }
@@ -170,18 +205,19 @@ pub async fn close_space(_api_key: ApiKey, space: &State<SpaceGuard>) {
 #[get("/")]
 pub async fn index(
     space: &State<SpaceGuard>,
+    displays: &State<StatusDisplayTypes>,
     template: &State<spaceapi_dezentrale::Status>,
 ) -> (ContentType, String) {
     let name = &template.space;
     let logo = &template.logo;
-    let open = if space.is_open().await { "open" } else { "closed" };
+    let status = if space.is_open().await { &displays.text.open } else { &displays.text.closed };
 
     let html = format!(
         r#"<html>
         <body>
             <center>
                 <img src="{logo}" alt="{name}"></img>
-                <div>Space is {open}</div>
+                <div>{status}</div>
                 <div><a href="https://github.com/dezentrale/spaceapi-rs">{SOFTWARE} v{VERSION}</a></div>
             </center>
         </body>
@@ -206,9 +242,15 @@ pub async fn get_status_v14<'a>(
     Json(status)
 }
 
-#[get("/space-open")]
-pub async fn get_status_html<'a>(space: &State<SpaceGuard>) -> (ContentType, &'static str) {
-    let status = if space.is_open().await { "open" } else { "close" };
+#[get("/status/text")]
+pub async fn get_status_text<'a>(space: &State<SpaceGuard>, displays: &State<StatusDisplayTypes>) -> (ContentType, String) {
+    let status = if space.is_open().await { displays.text.open.clone() } else { displays.text.closed.clone() };
+    (ContentType::Text, status)
+}
+
+#[get("/status/html")]
+pub async fn get_status_html<'a>(space: &State<SpaceGuard>, displays: &State<StatusDisplayTypes>) -> (ContentType, String) {
+    let status = if space.is_open().await { displays.html.open.clone() } else { displays.html.closed.clone() };
     (ContentType::HTML, status)
 }
 
@@ -251,6 +293,7 @@ pub fn serve(config: SpaceConfig) -> Rocket<Build> {
         .attach(Cors)
         // Add loaded template for spaceapi publishing
         .manage(config.publish)
+        .manage(config.status_display)
         // Add Space state
         .manage(SpaceGuard::new())
         .mount("/", routes);
