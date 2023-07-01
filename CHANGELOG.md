@@ -8,6 +8,9 @@
 * Added CORS handling
 * Added a minimalistic index page
 * Added support for TLS for client
+* Added text output on path `/status/text`
+* Added html output on path `/status/html`
+* Added configuration for text/html outputs
 
 ## v0.9
 
