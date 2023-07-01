@@ -8,9 +8,7 @@ use rocket::{
     fairing::{Fairing, Info, Kind},
     http::{
         hyper::header::{
-            ACCESS_CONTROL_ALLOW_HEADERS,
-            ACCESS_CONTROL_ALLOW_METHODS,
-            ACCESS_CONTROL_ALLOW_ORIGIN,
+            ACCESS_CONTROL_ALLOW_HEADERS, ACCESS_CONTROL_ALLOW_METHODS, ACCESS_CONTROL_ALLOW_ORIGIN,
         },
         ContentType, Header, Status,
     },
