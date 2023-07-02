@@ -298,7 +298,13 @@ impl Fairing for Cors {
 }
 
 pub fn serve(config: SpaceConfig) -> Rocket<Build> {
-    let mut routes = routes![get_status_v14, get_status_html, get_status_text, index, options_catch_all];
+    let mut routes = routes![
+        get_status_v14,
+        get_status_html,
+        get_status_text,
+        index,
+        options_catch_all
+    ];
 
     if config.admin.enabled {
         routes.extend(routes![open_space, close_space]);
@@ -439,7 +445,8 @@ mod test {
         assert_eq!(Status::Ok, response.status());
         assert_eq!("text closed", response.into_string().await.unwrap());
 
-        let response = client.post(uri!(open_space()))
+        let response = client
+            .post(uri!(open_space()))
             .header(Header::new("X-API-KEY", "sesame-open"))
             .dispatch()
             .await;
@@ -458,7 +465,8 @@ mod test {
         assert_eq!(Status::Ok, response.status());
         assert_eq!("html closed", response.into_string().await.unwrap());
 
-        let response = client.post(uri!(open_space()))
+        let response = client
+            .post(uri!(open_space()))
             .header(Header::new("X-API-KEY", "sesame-open"))
             .dispatch()
             .await;
