@@ -298,7 +298,7 @@ impl Fairing for Cors {
 }
 
 pub fn serve(config: SpaceConfig) -> Rocket<Build> {
-    let mut routes = routes![get_status_v14, get_status_html, index, options_catch_all];
+    let mut routes = routes![get_status_v14, get_status_html, get_status_text, index, options_catch_all];
 
     if config.admin.enabled {
         routes.extend(routes![open_space, close_space]);
@@ -351,6 +351,16 @@ mod test {
                 .location(Default::default())
                 .build()
                 .unwrap(),
+            status_display: StatusDisplayTypes {
+                text: StatusDisplay {
+                    open: "text open".to_string(),
+                    closed: "text closed".to_string(),
+                },
+                html: StatusDisplay {
+                    open: "html open".to_string(),
+                    closed: "html closed".to_string(),
+                },
+            },
             admin,
         }
     }
@@ -419,5 +429,43 @@ mod test {
             let response = client.post(route).dispatch().await;
             assert_eq!(Status::NotFound, response.status());
         }
+    }
+
+    #[tokio::test]
+    async fn check_status_text() {
+        let client = tester(sample_config(true)).await;
+
+        let response = client.get(uri!(get_status_text())).dispatch().await;
+        assert_eq!(Status::Ok, response.status());
+        assert_eq!("text closed", response.into_string().await.unwrap());
+
+        let response = client.post(uri!(open_space()))
+            .header(Header::new("X-API-KEY", "sesame-open"))
+            .dispatch()
+            .await;
+        assert_eq!(Status::Ok, response.status());
+
+        let response = client.get(uri!(get_status_text())).dispatch().await;
+        assert_eq!(Status::Ok, response.status());
+        assert_eq!("text open", response.into_string().await.unwrap());
+    }
+
+    #[tokio::test]
+    async fn check_status_html() {
+        let client = tester(sample_config(true)).await;
+
+        let response = client.get(uri!(get_status_html())).dispatch().await;
+        assert_eq!(Status::Ok, response.status());
+        assert_eq!("html closed", response.into_string().await.unwrap());
+
+        let response = client.post(uri!(open_space()))
+            .header(Header::new("X-API-KEY", "sesame-open"))
+            .dispatch()
+            .await;
+        assert_eq!(Status::Ok, response.status());
+
+        let response = client.get(uri!(get_status_html())).dispatch().await;
+        assert_eq!(Status::Ok, response.status());
+        assert_eq!("html open", response.into_string().await.unwrap());
     }
 }
