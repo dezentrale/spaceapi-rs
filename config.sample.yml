@@ -18,3 +18,30 @@ admin:
   enable: true
   # Set API key for access admin endpoint, if not set a random key will be generated
   api_key: not-very-secure
+
+# Configure status display output
+status_display:
+  # the content of `/status/text`
+  text:
+    # default text `open`
+    open: space is open
+    # default text `closed`
+    closed: space is closed
+  # the content of `/status/html`
+  html:
+    # default text `open`
+    open: |
+      <html>
+        <body>
+          <meta http-equiv="refresh" content="5">
+          OPEN
+        </body>
+      </html>
+    # default text `closed`
+    closed: |
+      <html>
+        <body>
+          <meta http-equiv="refresh" content="5">
+          CLOSED
+        </body>
+      </html>
