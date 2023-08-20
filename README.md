@@ -56,6 +56,13 @@ SPACEAPI_URL=http://localhost:8000 API_KEY=not-very-secure \
     spaceapi-dezentrale-client is-open
 ```
 
+Keep open call
+
+```
+SPACEAPI_URL=http://localhost:8000 API_KEY=not-very-secure \
+    spaceapi-dezentrale-client keep-open
+```
+
 ## License
 
 Licensed under either of
