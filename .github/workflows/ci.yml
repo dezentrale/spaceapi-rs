@@ -6,7 +6,6 @@ on:
   pull_request:
     branches: [ "main" ]
 
-
 jobs:
   test:
     runs-on: ubuntu-22.04
@@ -16,32 +15,62 @@ jobs:
       - run: cargo test
 
   binaries_x86-64:
-    strategy:
-      matrix:
-        version:
-          - "1.67"
-        variant:
-          - bullseye
-          - bookworm
     runs-on: ubuntu-22.04
-    container: rust:${{ matrix.version }}-${{ matrix.variant }}
+    container: rust:1.71
     steps:
       - name: Checkout repository
         uses: actions/checkout@v3
 
       - name: Build binaries
         run: |
+          export DEBCONF_FRONTEND=noninteractive
           apt-get update
-          DEBCONF_FRONTEND=noninteractive apt-get upgrade -y
-          cargo build --release
+          apt-get upgrade --yes
+          apt-get install --yes musl-tools
+          cargo build --release --target x86_64-unknown-linux-musl
 
-      - name: Archive binaries debian/${{ matrix.variant }} x86_64
+      - name: Archive server binaries x86_64
         uses: actions/upload-artifact@v3
         with:
-          name: debian-${{ matrix.variant }}
+          name: spaceapi-dezentrale-server-x86_64
           path: |
-            target/release/spaceapi-dezentrale-client
-            target/release/spaceapi-dezentrale-server
+            target/x86_64-unknown-linux-musl/release/spaceapi-dezentrale-server
+
+      - name: Archive client binaries x86_64
+        uses: actions/upload-artifact@v3
+        with:
+          name: spaceapi-dezentrale-client-x86_64
+          path: |
+            target/x86_64-unknown-linux-musl/release/spaceapi-dezentrale-client
+
+  binaries_aarch64:
+    runs-on: ubuntu-22.04
+    container: rust:1.71
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Build binaries
+        run: |
+          export DEBCONF_FRONTEND=noninteractive
+          apt-get update
+          apt-get upgrade --yes
+          apt-get install --yes gcc-aarch64-linux-gnu musl-tools
+          cargo build --release --target aarch64-unknown-linux-musl
+
+      - name: Archive server binaries aarch64
+        uses: actions/upload-artifact@v3
+        with:
+          name: spaceapi-dezentrale-server-aarch64
+          path: |
+            target/aarch64-unknown-linux-musl/release/spaceapi-dezentrale-server
+
+      - name: Archive client binaries aarch64
+        uses: actions/upload-artifact@v3
+        with:
+          name: spaceapi-dezentrale-client-aarch64
+          path: |
+            target/aarch64-unknown-linux-musl/release/spaceapi-dezentrale-client
      
   lint:
     runs-on: ubuntu-22.04

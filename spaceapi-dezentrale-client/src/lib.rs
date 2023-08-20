@@ -3,6 +3,8 @@ extern crate rocket;
 
 use reqwest::StatusCode;
 use spaceapi_dezentrale::Status;
+use spaceapi_dezentrale_server::routes::KeepOpenResponse;
+use std::time::{Duration, SystemTime};
 
 #[derive(Default)]
 pub struct ClientBuilder<'a> {
@@ -57,7 +59,7 @@ impl Client {
         let url = format!(
             "{}{}",
             self.base_url,
-            uri!(spaceapi_dezentrale_server::open_space())
+            uri!(spaceapi_dezentrale_server::routes::open_space())
         );
         let result = self
             .client
@@ -77,7 +79,7 @@ impl Client {
         let url = format!(
             "{}{}",
             self.base_url,
-            uri!(spaceapi_dezentrale_server::close_space())
+            uri!(spaceapi_dezentrale_server::routes::close_space())
         );
         let result = self
             .client
@@ -97,7 +99,7 @@ impl Client {
         let url = format!(
             "{}{}",
             self.base_url,
-            uri!(spaceapi_dezentrale_server::get_status_v14())
+            uri!(spaceapi_dezentrale_server::routes::get_status_v14())
         );
         self.client
             .get(url)
@@ -114,7 +116,7 @@ impl Client {
         let url = format!(
             "{}/{}",
             self.base_url,
-            uri!(spaceapi_dezentrale_server::get_status_v14())
+            uri!(spaceapi_dezentrale_server::routes::get_status_v14())
         );
         let status = self
             .client
@@ -133,5 +135,32 @@ impl Client {
             false
         };
         Ok(status)
+    }
+
+    pub async fn keep_open(&self) -> Result<SystemTime, String> {
+        let url = format!(
+            "{}{}",
+            self.base_url,
+            uri!(spaceapi_dezentrale_server::routes::keep_open())
+        );
+        let result = self
+            .client
+            .post(url)
+            .header("X-API-KEY", &self.api_key)
+            .send()
+            .await
+            .map_err(|err| format!("Can't open space: {err:?}"))?;
+        match result.status() {
+            StatusCode::OK => {
+                let result = result.json::<KeepOpenResponse>()
+                    .await
+                    .map_err(|err| format!("Can't parse response {err}"))?;
+                let open_till = Duration::from_secs(result.open_till);
+                let open_till = SystemTime::UNIX_EPOCH.checked_add(open_till).unwrap();
+                Ok(open_till)
+            },
+            StatusCode::UNAUTHORIZED => Err("Wrong API-Key provided, request denied".to_string()),
+            other => Err(format!("Unexpected status code return: {other}")),
+        }
     }
 }
