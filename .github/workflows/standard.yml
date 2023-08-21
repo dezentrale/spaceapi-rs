@@ -32,11 +32,11 @@ jobs:
             target: aarch64-unknown-linux-musl
             packages: "gcc-aarch64-linux-gnu musl-tools"
           - arch: armv6
-            target: arm-unknown-linux-musleabi
-            packages: "gcc-arm-none-eabi musl-tools"
+            target: arm-unknown-linux-musleabihf
+            packages: "gcc-arm-linux-gnueabihf musl-tools"
           - arch: armv7
-            target: armv7-unknown-linux-musleabi
-            packages: "gcc-arm-none-eabi musl-tools"
+            target: armv7-unknown-linux-musleabihf
+            packages: "gcc-arm-linux-gnueabihf musl-tools"
           - arch: x86_64
             target: x86_64-unknown-linux-musl
             packages: "musl-tools"
