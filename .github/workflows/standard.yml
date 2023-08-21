@@ -16,9 +16,11 @@ jobs:
   build:
     strategy:
       matrix:
-        arch:
-          - aarch64
-          - x86_64
+        include:
+          - arch: aarch64
+            packages: "gcc-aarch64-linux-gnu musl-tools"
+          - arch: x86_64
+            packages: "gcc-aarch64-linux-gnu musl-tools"
     runs-on: ubuntu-22.04
     container: rust:latest
     steps:
@@ -28,7 +30,7 @@ jobs:
           export DEBCONF_FRONTEND=noninteractive
           apt-get update
           apt-get upgrade --yes
-          apt-get install --yes musl-tools
+          apt-get install --yes ${{ matrix.packages }}
           cargo build --target ${{ matrix.arch }}-unknown-linux-musl
 
       - name: Archive server binaries
