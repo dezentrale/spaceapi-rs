@@ -33,7 +33,7 @@ reqwest = { version = "0.11.14", features = ["json", "rustls-tls"], default-feat
 rocket = { version = "0.5.0-rc.2", features = ["json"] }
 spaceapi-dezentrale = { path = "spaceapi-dezentrale" }
 spaceapi-dezentrale-server = { path = "spaceapi-dezentrale-server" }
-spaceapi = "0.8.1"
+spaceapi = "0.9.0"
 serde = { version = "1.0", features = ["derive"] }
 serde_yaml = "0.9.17"
 tokio = { version = "1", features = ["macros"] }
