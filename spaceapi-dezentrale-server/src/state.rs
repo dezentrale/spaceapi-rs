@@ -1,6 +1,6 @@
 use std::{
-    time::{Duration, SystemTime},
     sync::Arc,
+    time::{Duration, SystemTime},
 };
 use tokio::sync::RwLock;
 
@@ -51,7 +51,7 @@ impl SpaceGuard {
         space.open = true;
         let now = SystemTime::now();
         let open_till = now.checked_add(space.keep_open_interval).unwrap();
-        space.last_open_request = LastOpenRequest::KeepOpen(open_till.clone());
+        space.last_open_request = LastOpenRequest::KeepOpen(open_till);
         log::trace!("Space requested to keep open and it will till {open_till:?}");
         open_till
     }
@@ -90,4 +90,3 @@ impl Default for SpaceGuard {
         SpaceGuard::new(Duration::from_secs(300))
     }
 }
-

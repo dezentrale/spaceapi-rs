@@ -35,11 +35,11 @@ async fn main() {
             }
         }
         Some("keep-open") => {
-            client.keep_open()
+            client
+                .keep_open()
                 .await
                 .map(|till| println!("Space is open till {till:?}"))
                 .expect("Request failed");
-
         }
         Some(other) => {
             println!("Unknown command `{other}`");

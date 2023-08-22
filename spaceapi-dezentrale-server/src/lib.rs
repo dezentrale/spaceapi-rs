@@ -10,15 +10,8 @@ extern crate rocket;
 use crate::{
     config::{ApiKey, SpaceConfig},
     routes::{
-        Cors,
-        close_space,
-        get_status_html,
-        get_status_text,
-        get_status_v14,
-        keep_open,
-        index,
-        open_space,
-        options_catch_all,
+        close_space, get_status_html, get_status_text, get_status_v14, index, keep_open, open_space,
+        options_catch_all, Cors,
     },
     state::SpaceGuard,
 };
@@ -121,11 +114,7 @@ mod test {
     }
 
     pub(crate) async fn tester(config: SpaceConfig) -> Client {
-        let rocket = serve(config)
-            .await
-            .ignite()
-            .await
-            .expect("A server");
+        let rocket = serve(config).await.ignite().await.expect("A server");
         Client::tracked(rocket).await.expect("A client")
     }
 

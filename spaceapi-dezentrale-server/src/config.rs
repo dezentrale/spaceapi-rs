@@ -1,12 +1,6 @@
-use rocket::serde::{
-    Deserialize, Deserializer, Serialize,
-    de::Error,
-};
-use std::{
-    io::Read,
-    time::Duration,
-};
 use rand::RngCore;
+use rocket::serde::{de::Error, Deserialize, Deserializer, Serialize};
+use std::{io::Read, time::Duration};
 
 #[derive(Debug, Deserialize, Serialize, PartialEq, Eq)]
 pub struct ApiKey(pub String);
@@ -66,10 +60,18 @@ pub struct AdminConfig {
     pub api_key: Option<ApiKey>,
     #[serde(default, rename = "enable")]
     pub enabled: bool,
-    #[serde(default = "default_keep_open_interval", rename = "keep_open_interval", deserialize_with = "deserialize_duration_secs_from_string")]
+    #[serde(
+        default = "default_keep_open_interval",
+        rename = "keep_open_interval",
+        deserialize_with = "deserialize_duration_secs_from_string"
+    )]
     pub keep_open_interval: Duration,
-    #[serde(default = "default_tick_interval", rename = "tick_interval", deserialize_with = "deserialize_duration_millis_from_string")]
-    pub tick_interval: Duration
+    #[serde(
+        default = "default_tick_interval",
+        rename = "tick_interval",
+        deserialize_with = "deserialize_duration_millis_from_string"
+    )]
+    pub tick_interval: Duration,
 }
 
 impl Default for AdminConfig {

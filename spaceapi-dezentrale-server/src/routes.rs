@@ -58,7 +58,6 @@ impl Fairing for Cors {
     }
 }
 
-
 #[post("/admin/publish/space-open")]
 pub async fn open_space(_api_key: ApiKey, space: &State<SpaceGuard>) {
     space.open().await;
@@ -110,7 +109,8 @@ pub async fn index(
         </body>
     </html>
     "#,
-    crate::SOFTWARE, crate::VERSION,
+        crate::SOFTWARE,
+        crate::VERSION,
     );
     (ContentType::HTML, html)
 }

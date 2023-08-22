@@ -152,13 +152,14 @@ impl Client {
             .map_err(|err| format!("Can't open space: {err:?}"))?;
         match result.status() {
             StatusCode::OK => {
-                let result = result.json::<KeepOpenResponse>()
+                let result = result
+                    .json::<KeepOpenResponse>()
                     .await
                     .map_err(|err| format!("Can't parse response {err}"))?;
                 let open_till = Duration::from_secs(result.open_till);
                 let open_till = SystemTime::UNIX_EPOCH.checked_add(open_till).unwrap();
                 Ok(open_till)
-            },
+            }
             StatusCode::UNAUTHORIZED => Err("Wrong API-Key provided, request denied".to_string()),
             other => Err(format!("Unexpected status code return: {other}")),
         }
