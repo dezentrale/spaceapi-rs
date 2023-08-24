@@ -11,7 +11,7 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
-    container: rust:latest
+    container: rust:1.71-bookworm
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
