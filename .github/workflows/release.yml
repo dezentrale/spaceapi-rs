@@ -11,6 +11,7 @@ jobs:
   release:
     name: Create Release
     runs-on: ubuntu-latest
+    container: rust:latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
@@ -26,13 +27,12 @@ jobs:
           prerelease: false
 
       - name: Build
-        runs-on: ubuntu-22.04
-        container: rust:latest
         run: |
           export DEBCONF_FRONTEND=noninteractive
           apt-get update
           apt-get upgrade --yes
           apt-get install --yes \
+            gh \
             musl-tools \
             gcc-aarch64-linux-gnu \
             gcc-arm-linux-gnueabihf
@@ -47,7 +47,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           for arch in x86_64-unknown-linux-musl aarch64-unknown-linux-musl arm-unknown-linux-musleabihf armv7-unknown-linux-musleabihf ; do
-            hub release upload "${{ github.ref }}" \
+            gh release upload "${{ github.ref }}" \
               "spaceapi-dezentrale-client-${arch}.tar.xz" \
               "spaceapi-dezentrale-server-${arch}.tar.xz"
           done
