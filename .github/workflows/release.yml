@@ -26,6 +26,8 @@ jobs:
           prerelease: false
 
       - name: Build
+        runs-on: ubuntu-22.04
+        container: rust:latest
         run: |
           export DEBCONF_FRONTEND=noninteractive
           apt-get update
