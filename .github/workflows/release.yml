@@ -26,55 +26,28 @@ jobs:
           draft: false
           prerelease: false
 
-  build:
-    strategy:
-      matrix:
-        include:
-          - arch: aarch64
-            target: aarch64-unknown-linux-musl
-            packages: "gcc-aarch64-linux-gnu musl-tools"
-          - arch: armv6
-            target: arm-unknown-linux-musleabihf
-            packages: "gcc-arm-linux-gnueabihf musl-tools"
-          - arch: armv7
-            target: armv7-unknown-linux-musleabihf
-            packages: "gcc-arm-linux-gnueabihf musl-tools"
-          - arch: x86_64
-            target: x86_64-unknown-linux-musl
-            packages: "musl-tools"
-    runs-on: ubuntu-latest
-    container: rust:latest
-    steps:
-      - uses: actions/checkout@v3
-
       - name: Build
         run: |
           export DEBCONF_FRONTEND=noninteractive
           apt-get update
           apt-get upgrade --yes
-          apt-get install --yes ${{ matrix.packages }}
-          cargo build --bins --target ${{ matrix.target }} --release
-          tar -cvJf spaceapi-dezentrale-client.tar.xz -C target/${{ matrix.target }}/release/ spaceapi-dezentrale-client
-          tar -cvJf spaceapi-dezentrale-server.tar.xz -C target/${{ matrix.target }}/release/ spaceapi-dezentrale-server
+          apt-get install --yes \
+            musl-tools \
+            gcc-aarch64-linux-gnu \
+            gcc-arm-linux-gnueabihf
+          for arch in x86_64-unknown-linux-musl aarch64-unknown-linux-musl arm-unknown-linux-musleabihf armv7-unknown-linux-musleabihf ; do
+            cargo build --bins --target "${arch}" --release
+            tar -cvJf "spaceapi-dezentrale-client-${arch}.tar.xz" -C "target/${arch}/release/" spaceapi-dezentrale-client
+            tar -cvJf "spaceapi-dezentrale-server-${arch}.tar.xz" -C "target/${arch}/release/" spaceapi-dezentrale-server
+          done
 
-      - name: Upload server release
-        id: upload-release-client-asset 
+      - name: Upload release binaries
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: spaceapi-dezentrale-client-${{ github.ref }}-${{ matrix.arch }}.tar.xz
-          asset_name: spaceapi-dezentrale-client-${{ github.ref }}-${{ matrix.arch }}.tar.xz
-          asset_content_type: application/x-executable
-
-      - name: Upload client release
-        id: upload-release-server-asset 
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: spaceapi-dezentrale-server-${{ github.ref }}-${{ matrix.arch }}.tar.xz
-          asset_name: spaceapi-dezentrale-server-${{ github.ref }}-${{ matrix.arch }}.tar.xz
-          asset_content_type: application/x-executable
+        run: |
+          for arch in x86_64-unknown-linux-musl aarch64-unknown-linux-musl arm-unknown-linux-musleabihf armv7-unknown-linux-musleabihf ; do
+            hub release upload "${{ github.ref }}" \
+              "spaceapi-dezentrale-client-${arch}.tar.xz" \
+              "spaceapi-dezentrale-server-${arch}.tar.xz"
+          done
