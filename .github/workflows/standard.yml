@@ -1,6 +1,8 @@
 name: Standard tasks
 
-on: [push]
+on:
+  push:
+    tags-ignore: '*'
 
 jobs:
   test:
