@@ -14,7 +14,7 @@ jobs:
         uses: actions/checkout@v2
 
       - name: Create Release
-        id: create-release
+        id: create_release
         uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -62,8 +62,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: spaceapi-dezentrale-client-${{ matrix.arch }}.tar.xz
-          asset_name: spaceapi-dezentrale-client-${{ matrix.arch }}.tar.xz
+          asset_path: spaceapi-dezentrale-client-${{ github.ref }}-${{ matrix.arch }}.tar.xz
+          asset_name: spaceapi-dezentrale-client-${{ github.ref }}-${{ matrix.arch }}.tar.xz
           asset_content_type: application/x-executable
 
       - name: Upload client release
@@ -73,6 +73,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: spaceapi-dezentrale-server-${{ matrix.arch }}.tar.xz
-          asset_name: spaceapi-dezentrale-server-${{ matrix.arch }}.tar.xz
+          asset_path: spaceapi-dezentrale-server-${{ github.ref }}-${{ matrix.arch }}.tar.xz
+          asset_name: spaceapi-dezentrale-server-${{ github.ref }}-${{ matrix.arch }}.tar.xz
           asset_content_type: application/x-executable
