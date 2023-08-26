@@ -49,7 +49,7 @@ jobs:
           apt-get update
           apt-get upgrade --yes
           apt-get install --yes ${{ matrix.packages }}
-          cargo build --bins --target "${target}" --release
+          cargo build --bins --target "${{ target }}" --release
 
       - uses: actions/upload-artifact@v3
         with:
