@@ -10,14 +10,8 @@ on:
 jobs:
   release:
     name: Create Release
-    runs-on: ubuntu-latest
-    container: rust:1.71-bookworm
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-
-      - name: Create Release
-        uses: actions/create-release@v1
+      - uses: actions/create-release@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -26,28 +20,87 @@ jobs:
           draft: false
           prerelease: false
 
-      - name: Build
-        run: |
+  build:
+    name: Build binaries
+    needs: release
+    strategy:
+      matrix:
+        include:
+          - arch: aarch64
+            target: aarch64-unknown-linux-musl
+            packages: "gcc-aarch64-linux-gnu musl-tools"
+          - arch: armv6
+            target: arm-unknown-linux-musleabihf
+            packages: "gcc-arm-linux-gnueabihf musl-tools"
+          - arch: armv7
+            target: armv7-unknown-linux-musleabihf
+            packages: "gcc-arm-linux-gnueabihf musl-tools"
+          - arch: x86_64
+            target: x86_64-unknown-linux-musl
+            packages: "musl-tools"
+    runs-on: ubuntu-latest
+    container: rust:1.71-bookworm
+    steps:
+      - uses: actions/checkout@v2
+
+      - run: |
           export DEBCONF_FRONTEND=noninteractive
           apt-get update
           apt-get upgrade --yes
-          apt-get install --yes \
-            gh \
-            musl-tools \
-            gcc-aarch64-linux-gnu \
-            gcc-arm-linux-gnueabihf
-          for arch in x86_64-unknown-linux-musl aarch64-unknown-linux-musl arm-unknown-linux-musleabihf armv7-unknown-linux-musleabihf ; do
-            cargo build --bins --target "${arch}" --release
-            tar -cvJf "spaceapi-dezentrale-client-${arch}.tar.xz" -C "target/${arch}/release/" spaceapi-dezentrale-client
-            tar -cvJf "spaceapi-dezentrale-server-${arch}.tar.xz" -C "target/${arch}/release/" spaceapi-dezentrale-server
-          done
+          apt-get install --yes ${{ matrix.packages }}
+          cargo build --bins --target "${arch}" --release
 
-      - name: Upload release binaries
-        env:
+      - uses: actions/upload-artifact@v3
+        with:
+          name: "spaceapi-dezentrale-client-${arch}"
+          path: "target/${arch}/release/spaceapi-dezentrale-client"
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: "spaceapi-dezentrale-server-${arch}"
+          path: "target/${arch}/release/spaceapi-dezentrale-server"
+
+  upload:
+    name: Upload binaries to release
+    needs: release
+    steps:
+      - uses: actions/download-artifact@v3
+        with:
+          name: spaceapi-dezentrale-client-x86_64
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: spaceapi-dezentrale-client-aarch64
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: spaceapi-dezentrale-client-arm
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: spaceapi-dezentrale-client-armv7
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: spaceapi-dezentrale-server-x86_64
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: spaceapi-dezentrale-server-aarch64
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: spaceapi-dezentrale-server-arm
+
+      - uses: actions/download-artifact@v3
+        with:
+          name: spaceapi-dezentrale-server-armv7
+
+      - env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          for arch in x86_64-unknown-linux-musl aarch64-unknown-linux-musl arm-unknown-linux-musleabihf armv7-unknown-linux-musleabihf ; do
-            gh release upload "${{ github.ref }}" \
+          for arch in x86_64 aarch64 arm-unknown armv7 ; do
+            hub release upload "${{ github.ref }}" \
               "spaceapi-dezentrale-client-${arch}.tar.xz" \
               "spaceapi-dezentrale-server-${arch}.tar.xz"
           done
