@@ -49,17 +49,17 @@ jobs:
           apt-get update
           apt-get upgrade --yes
           apt-get install --yes ${{ matrix.packages }}
-          cargo build --bins --target "${{ target }}" --release
+          cargo build --bins --target "${{ matrix.target }}" --release
 
       - uses: actions/upload-artifact@v3
         with:
-          name: "spaceapi-dezentrale-client-${arch}"
-          path: "target/${arch}/release/spaceapi-dezentrale-client"
+          name: "spaceapi-dezentrale-client-${{ matrix.arch }}"
+          path: "target/${{ matrix.arch }}/release/spaceapi-dezentrale-client"
 
       - uses: actions/upload-artifact@v3
         with:
-          name: "spaceapi-dezentrale-server-${arch}"
-          path: "target/${arch}/release/spaceapi-dezentrale-server"
+          name: "spaceapi-dezentrale-server-${{ matrix.arch }}"
+          path: "target/${{ matrix.arch }}/release/spaceapi-dezentrale-server"
 
   upload:
     name: Upload binaries to release
@@ -103,6 +103,6 @@ jobs:
         run: |
           for arch in x86_64 aarch64 arm-unknown armv7 ; do
             hub release upload "${{ github.ref }}" \
-              "spaceapi-dezentrale-client-${arch}.tar.xz" \
-              "spaceapi-dezentrale-server-${arch}.tar.xz"
+              "target/${{ matrix.arch }}/release/spaceapi-dezentrale-client" \
+              "target/${{ matrix.arch }}/release/spaceapi-dezentrale-server"
           done
