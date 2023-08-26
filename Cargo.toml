@@ -4,6 +4,7 @@ members = [
     "spaceapi-dezentrale-client",
     "spaceapi-dezentrale-server",
 ]
+resolver = "2"
 
 [workspace.package]
 version = "0.10.0"
