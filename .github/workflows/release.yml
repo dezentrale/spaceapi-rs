@@ -21,7 +21,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
+          release_name: Release ${{ github.ref_name }}
           draft: false
           prerelease: false
 
@@ -152,7 +152,7 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:${{ github.ref }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:${{ github.ref_name }}
 
       - name: Build and push server to docker hub
         uses: docker/build-push-action@v4
@@ -166,4 +166,4 @@ jobs:
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:${{ github.ref }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:${{ github.ref_name }}
