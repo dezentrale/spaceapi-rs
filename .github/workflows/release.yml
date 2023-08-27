@@ -12,7 +12,7 @@ jobs:
     name: Create Release
     runs-on: ubuntu-latest
     outputs:
-      upload_url: "${{ steps.create_release.upload_url }}"
+      upload_url: "${{ steps.create_release.outputs.upload_url }}"
     steps:
       - uses: actions/create-release@v1
         id: create_release
