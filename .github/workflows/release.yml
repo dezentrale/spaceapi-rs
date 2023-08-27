@@ -125,9 +125,9 @@ jobs:
           platform: ${{ matrix.docker_platform }}
           file: Dockerfile.client
           push: true
-          tags:
-            - ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:latest
-            - ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:${{ github.ref }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:${{ github.ref }}
 
       - name: Build and push server to docker hub
         uses: docker/build-push-action@v4
@@ -140,6 +140,6 @@ jobs:
           platform: ${{ matrix.docker_platform }}
           file: Dockerfile.server
           push: true
-          tags:
-            - ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:latest
-            - ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:${{ github.ref }}
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:${{ github.ref }}
