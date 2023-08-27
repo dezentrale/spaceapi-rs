@@ -44,31 +44,20 @@ jobs:
             rust_target: x86_64-unknown-linux-musl
             packages: musl-tools
     runs-on: ubuntu-latest
-    container: rust:1.72-bookworm
+    container: rust:1.72
     steps:
       - uses: actions/checkout@v2
 
       - name: Cargo build
         run: |
           export DEBCONF_FRONTEND=noninteractive
-          #apt-get update
-          #apt-get upgrade --yes
-          #apt-get install --yes ${{ matrix.packages }}
-          #cargo build --bins --target "${{ matrix.rust_target }}" --release
-          mkdir -p "target/${{ matrix.rust_target }}/release"
+          apt-get update
+          apt-get upgrade --yes
+          apt-get install --yes ${{ matrix.packages }}
+          cargo build --bins --target "${{ matrix.rust_target }}" --release
           cd "target/${{ matrix.rust_target }}/release"
-          date > spaceapi-dezentrale-client
-          date > spaceapi-dezentrale-server
           sha256sum spaceapi-dezentrale-client >spaceapi-dezentrale-client.sha256
           sha256sum spaceapi-dezentrale-server >spaceapi-dezentrale-server.sha256
-
-      - name: Store client binaries as artifact
-        uses: actions/upload-artifact@v3
-        with:
-          name: binaries-${{ matrix.arch }}
-          path: |
-            target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-client
-            target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-server
 
       - name: Append client binary to release page
         uses: actions/upload-release-asset@v1
@@ -78,8 +67,7 @@ jobs:
           upload_url: ${{ needs.release.outputs.upload_url }}
           asset_name: spaceapi-dezentrale-client-${{ matrix.arch }}
           asset_path: target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-client
-          #asset_content_type: application/x-executable
-          asset_content_type: text/plain
+          asset_content_type: application/x-executable
 
       - name: Append client binary checksum to release page
         uses: actions/upload-release-asset@v1
@@ -99,8 +87,7 @@ jobs:
           upload_url: ${{ needs.release.outputs.upload_url }}
           asset_name: spaceapi-dezentrale-server-${{ matrix.arch }}
           asset_path: target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-server
-          #asset_content_type: application/x-executable
-          asset_content_type: text/plain
+          asset_content_type: application/x-executable
 
       - name: Append server binary checksum to release page
         uses: actions/upload-release-asset@v1
@@ -114,7 +101,7 @@ jobs:
 
   container:
     name: Build images
-    needs: build
+    needs: release 
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -134,19 +121,8 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Download binaries
-        uses: actions/download-artifact@v3
-        with:
-          name: binaries-${{ matrix.arch }}
-          path: target/${{ matrix.rust_target }}/release
-
-      - run: |
-          pwd
-          tree target
-
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
-
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
 
@@ -163,12 +139,16 @@ jobs:
           build-args: |
             TARGET=${{ matrix.rust_target }}
             BUILD_TYPE=release
+            BINARY=target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-client
           platforms: ${{ matrix.docker_platform }}
-          file: Dockerfile.client
+          file: Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:${{ github.ref_name }}
+          labels: |
+            org.opencontainers.image.description="Client to control SpaceAPI server"
+            org.opencontainers.image.title="spaceapi-dezentrale-client"
 
       - name: Build and push server to docker hub
         uses: docker/build-push-action@v4
@@ -177,9 +157,13 @@ jobs:
           build-args: |
             TARGET=${{ matrix.rust_target }}
             BUILD_TYPE=release
+            BINARY=target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-server
           platforms: ${{ matrix.docker_platform }}
-          file: Dockerfile.server
+          file: Dockerfile
           push: true
           tags: |
             ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:latest
             ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:${{ github.ref_name }}
+          labels: |
+            org.opencontainers.image.description="Server implementation of SpaceAPI"
+            org.opencontainers.image.title="spaceapi-dezentrale-server"
