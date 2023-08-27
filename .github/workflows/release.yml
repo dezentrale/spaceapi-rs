@@ -110,6 +110,7 @@ jobs:
   container:
     name: Build images
     needs: build
+    runs-on: ubuntu-latest
     strategy:
       matrix:
         include:
