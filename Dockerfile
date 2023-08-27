@@ -1,4 +1,4 @@
-FROM docker.io/library/rust:1.72 AS builder
+FROM --platform=linux/x86_64 docker.io/library/rust:1.72 AS builder
 ARG TARGET=x86_64-unknown-linux-musl
 ARG BUILD_TYPE=release
 ENV DEBCONF_FRONTEND=noninteractive
