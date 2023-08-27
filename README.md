@@ -4,7 +4,14 @@ This is an implementation of the [SpaceAPI](https://spaceapi.io/) v14 in Rust. I
 
 - `spaceapi-dezentrale`: Serialization and deserialization to/from JSON using Serde
 - `spaceapi-dezentrale-client`: Client to access the server via API
-- `spaceapi-dezentrale-server`: Server which provides the API 
+- `spaceapi-dezentrale-server`: Server which provides the API
+
+Supported architectures with static linked binaries with [*musl libc*](https://musl.libc.org/):
+
+* x86-64
+* Aarch64
+* ARMv6 + FPU
+* ARMv7 + FPU
 
 ## Build
 
@@ -62,6 +69,23 @@ Keep open call
 SPACEAPI_URL=http://localhost:8000 API_KEY=not-very-secure \
     spaceapi-dezentrale-client keep-open
 ```
+
+### Containter images
+
+Due the support for static linked binaries the container images are based on the `scratch` image. In the end the image only contains the binary.
+
+To build the x86-64 binaries do following steps:
+
+```sh
+# Build the binaries
+cargo build --bins --release --target x86_64-unknown-linux-musl
+# Build the server image
+docker build -f Dockerfile.server -t spaceapi-dezentrale-server .
+# Build the client image
+docker build -f Dockerfile.client -t spaceapi-dezentrale-client .
+```
+
+To build other configurations and architectures take a look into [Dockerfile.server](Dockerfile.server) or [Dockerfile.client](Dockerfile.client) and the [GitHub release workflow](.github/workflows/release.yml).
 
 ## License
 

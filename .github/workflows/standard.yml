@@ -38,16 +38,16 @@ jobs:
         include:
           - arch: aarch64
             target: aarch64-unknown-linux-musl
-            packages: "gcc-aarch64-linux-gnu musl-tools"
+            packages: gcc-aarch64-linux-gnu musl-tools
           - arch: armv6
             target: arm-unknown-linux-musleabihf
-            packages: "gcc-arm-linux-gnueabihf musl-tools"
+            packages: gcc-arm-linux-gnueabihf musl-tools
           - arch: armv7
             target: armv7-unknown-linux-musleabihf
-            packages: "gcc-arm-linux-gnueabihf musl-tools"
+            packages: gcc-arm-linux-gnueabihf musl-tools
           - arch: x86_64
             target: x86_64-unknown-linux-musl
-            packages: "musl-tools"
+            packages: musl-tools"
     runs-on: ubuntu-latest
     container: rust:1.71
     steps:
@@ -59,7 +59,7 @@ jobs:
           apt-get update
           apt-get upgrade --yes
           apt-get install --yes ${{ matrix.packages }}
-          cargo build --target ${{ matrix.target }}
+          cargo build --target "${{ matrix.target }}"
 
       - name: Archive binaries
         uses: actions/upload-artifact@v3
