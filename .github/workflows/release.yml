@@ -51,11 +51,13 @@ jobs:
       - name: Cargo build
         run: |
           export DEBCONF_FRONTEND=noninteractive
-          apt-get update
-          apt-get upgrade --yes
-          apt-get install --yes ${{ matrix.packages }}
-          cargo build --bins --target "${{ matrix.rust_target }}" --release
-          tar -cv -f binaries.tar "target/${{ matrix.rust_target }}/release"
+          #apt-get update
+          #apt-get upgrade --yes
+          #apt-get install --yes ${{ matrix.packages }}
+          #cargo build --bins --target "${{ matrix.rust_target }}" --release
+          mkdir -p "target/${{ matrix.rust_target }}/release"
+          touch spaceapi-dezentrale-client
+          touch spaceapi-dezentrale-server
           cd "target/${{ matrix.rust_target }}/release"
           sha256sum spaceapi-dezentrale-client >spaceapi-dezentrale-client.sha256
           sha256sum spaceapi-dezentrale-server >spaceapi-dezentrale-server.sha256
@@ -136,6 +138,10 @@ jobs:
           name: binaries-${{ matrix.arch }}
           path: target/${{ matrix.rust_target }}/release
 
+      - run: |
+          pwd
+          tree target
+
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v2
 
@@ -155,7 +161,7 @@ jobs:
           build-args: |
             TARGET=${{ matrix.rust_target }}
             BUILD_TYPE=release
-          platform: ${{ matrix.docker_platform }}
+          platforms: ${{ matrix.docker_platform }}
           file: Dockerfile.client
           push: true
           tags: |
@@ -169,7 +175,7 @@ jobs:
           build-args: |
             TARGET=${{ matrix.rust_target }}
             BUILD_TYPE=release
-          platform: ${{ matrix.docker_platform }}
+          platforms: ${{ matrix.docker_platform }}
           file: Dockerfile.server
           push: true
           tags: |
