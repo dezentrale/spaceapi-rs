@@ -51,20 +51,6 @@ jobs:
     needs: build
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: "${{ github.ref }}"
-          release_name: "Release ${{ github.ref }}"
-          draft: false
-          prerelease: true
-
-  upload:
-    name: Upload binaries to release
-    needs: release
-    runs-on: ubuntu-latest
-    steps:
       - uses: actions/download-artifact@v3
         with:
           name: spaceapi-dezentrale-aarch64
@@ -81,16 +67,39 @@ jobs:
         with:
           name: spaceapi-dezentrale-x86_64
 
-      - name: Upload files
+      - uses: actions/create-release@v1
+        id: create_release
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          hub release upload "${GITHUB_REF_NAME}" \
-            "spaceapi-dezentrale-client-aarch64" \
-            "spaceapi-dezentrale-server-aarch64" \
-            "spaceapi-dezentrale-client-arm" \
-            "spaceapi-dezentrale-server-arm" \
-            "spaceapi-dezentrale-client-armv7" \
-            "spaceapi-dezentrale-server-armv7" \
-            "spaceapi-dezentrale-client-x86_64" \
-            "spaceapi-dezentrale-server-x86_64"
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          tag_name: "${{ github.ref }}"
+          release_name: "Release ${{ github.ref }}"
+          draft: false
+          prerelease: true
+          file: |
+            spaceapi-dezentrale-client-aarch64
+            spaceapi-dezentrale-server-aarch64
+            spaceapi-dezentrale-client-arm
+            spaceapi-dezentrale-server-arm
+            spaceapi-dezentrale-client-armv7
+            spaceapi-dezentrale-server-armv7
+            spaceapi-dezentrale-client-x86_64
+            spaceapi-dezentrale-server-x86_64
+
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          upload_url: "${{ steps.create_release.outputs.upload_url }}"
+          asset_path: spaceapi-dezentrale-client-x86_64
+          asset_name: spaceapi-dezentrale-client-x86_64
+          asset_content_type: application/x-executable
+        
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          upload_url: "${{ steps.create_release.outputs.upload_url }}"
+          asset_path: spaceapi-dezentrale-server-x86_64
+          asset_name: spaceapi-dezentrale-server-x86_64
+          asset_content_type: application/x-executable
