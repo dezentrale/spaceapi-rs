@@ -25,7 +25,7 @@ jobs:
           draft: false
           prerelease: false
 
-  build:
+  binaries:
     name: Build binaries
     needs: release
     strategy:
@@ -116,7 +116,7 @@ jobs:
             rust_target: armv7-unknown-linux-musleabihf
             docker_platform: linux/arm32v7
           - arch: x86_64
-            rust_target: armv7-unknown-linux-musleabihf
+            rust_target: x86_64-unknown-linux-musl
             docker_platform: linux/amd64
     steps:
       - uses: actions/checkout@v2
@@ -140,12 +140,13 @@ jobs:
             TARGET=${{ matrix.rust_target }}
             BUILD_TYPE=release
             BINARY=target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-client
+            PROJECT=spaceapi-dezentrale-client
           platforms: ${{ matrix.docker_platform }}
           file: Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:${{ github.ref_name }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:${{ matrix-arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:${{ github.ref_name }}-${{ matrix-arch }}
           labels: |
             org.opencontainers.image.description="Client to control SpaceAPI server"
             org.opencontainers.image.title="spaceapi-dezentrale-client"
@@ -158,12 +159,13 @@ jobs:
             TARGET=${{ matrix.rust_target }}
             BUILD_TYPE=release
             BINARY=target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-server
+            PROJECT=spaceapi-dezentrale-server
           platforms: ${{ matrix.docker_platform }}
           file: Dockerfile
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:${{ github.ref_name }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:${{ github.ref_name }}-${{ matrix.arch }}
           labels: |
             org.opencontainers.image.description="Server implementation of SpaceAPI"
             org.opencontainers.image.title="spaceapi-dezentrale-server"

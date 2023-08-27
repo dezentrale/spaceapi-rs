@@ -1,6 +1,7 @@
 FROM --platform=linux/x86_64 docker.io/library/rust:1.72 AS builder
 ARG TARGET=x86_64-unknown-linux-musl
 ARG BUILD_TYPE=release
+ARG PROJECT=spaceapi-dezentrale-server
 ENV DEBCONF_FRONTEND=noninteractive
 RUN apt-get update \
     && apt-get install --yes \
@@ -11,9 +12,9 @@ COPY . /usr/src
 WORKDIR /usr/src
 RUN \
     if [ "${BUILD_TYPE}" = "release" ] ; then \
-        cargo build --bins --target "${TARGET}" --release; \
+        cargo build -p "${PROJECT}" --bins --target "${TARGET}" --release; \
     else \
-        cargo build --bins --target "${TARGET}" --release; \
+        cargo build -p "${PROJECT}" --bins --target "${TARGET}" --release; \
     fi
 
 FROM scratch

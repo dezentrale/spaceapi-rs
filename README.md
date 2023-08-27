@@ -72,20 +72,22 @@ SPACEAPI_URL=http://localhost:8000 API_KEY=not-very-secure \
 
 ### Containter images
 
-Due the support for static linked binaries the container images are based on the `scratch` image. In the end the image only contains the binary.
+Due the support for static linked binaries the container images are based on the `scratch` image so the image only contains the binary.
 
-To build the x86-64 binaries do following steps:
+To build the images for *x86-64*:
 
 ```sh
-# Build the binaries
-cargo build --bins --release --target x86_64-unknown-linux-musl
 # Build the server image
-docker build -f Dockerfile.server -t spaceapi-dezentrale-server .
+docker build -t spaceapi-dezentrale-server .
+
 # Build the client image
-docker build -f Dockerfile.client -t spaceapi-dezentrale-client .
+docker build \
+    --build-arg PROJECT=spaceapi-dezentrale-client \
+    --build-arg BINARY=target/x86_64-unknown-linux-musl/release/spaceapi-dezentrale-client \
+    --tag spaceapi-dezentrale-client .
 ```
 
-To build other configurations and architectures take a look into [Dockerfile.server](Dockerfile.server) or [Dockerfile.client](Dockerfile.client) and the [GitHub release workflow](.github/workflows/release.yml).
+To build other configurations and architectures take a look into [Dockerfile](Dockerfile) and the [GitHub release workflow](.github/workflows/release.yml).
 
 ## License
 
