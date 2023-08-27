@@ -10,7 +10,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container: rust:1.71
+    container: rust:1.72
     steps:
       - uses: actions/checkout@v3
       - name: Unittests
@@ -18,7 +18,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    container: rust:1.71
+    container: rust:1.72
     steps:
       - uses: actions/checkout@v3
       - name: Clippy check
@@ -26,7 +26,7 @@ jobs:
 
   fmt:
     runs-on: ubuntu-latest
-    container: rust:1.71
+    container: rust:1.72
     steps:
       - uses: actions/checkout@v3
       - name: Rustfmt check
@@ -37,19 +37,22 @@ jobs:
       matrix:
         include:
           - arch: aarch64
-            target: aarch64-unknown-linux-musl
+            rust_target: aarch64-unknown-linux-musl
             packages: gcc-aarch64-linux-gnu musl-tools
           - arch: armv6
-            target: arm-unknown-linux-musleabihf
+            rust_target: arm-unknown-linux-musleabihf
             packages: gcc-arm-linux-gnueabihf musl-tools
           - arch: armv7
-            target: armv7-unknown-linux-musleabihf
+            rust_target: armv7-unknown-linux-musleabihf
             packages: gcc-arm-linux-gnueabihf musl-tools
           - arch: x86_64
-            target: x86_64-unknown-linux-musl
+            rust_target: x86_64-unknown-linux-musl
+            packages: musl-tools"
+          - arch: x86_64
+            rust_target: x86_64-unknown-linux-gnu
             packages: musl-tools"
     runs-on: ubuntu-latest
-    container: rust:1.71
+    container: rust:1.72
     steps:
       - uses: actions/checkout@v3
 
@@ -58,8 +61,8 @@ jobs:
           export DEBCONF_FRONTEND=noninteractive
           apt-get update
           apt-get upgrade --yes
-          apt-get install --yes ${{ matrix.packages }}
-          cargo build --target "${{ matrix.target }}"
+          [ "${{ matrix.packages }}" ] && apt-get install --yes ${{ matrix.packages }}
+          cargo build --target "${{ matrix.rust_target }}"
 
       - name: Archive binaries
         uses: actions/upload-artifact@v3

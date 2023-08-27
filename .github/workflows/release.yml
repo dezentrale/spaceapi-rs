@@ -48,7 +48,7 @@ jobs:
             packages: musl-tools
             docker_platform: linux/amd64
     runs-on: ubuntu-latest
-    container: rust:1.71-bookworm
+    container: rust:1.72-bookworm
     steps:
       - uses: actions/checkout@v2
 
@@ -58,7 +58,7 @@ jobs:
           apt-get update
           apt-get upgrade --yes
           apt-get install --yes ${{ matrix.packages }}
-          cargo build --bins --rust_target "${{ matrix.rust_target }}" --release
+          cargo build --bins --target "${{ matrix.rust_target }}" --release
           cd "target/${{ matrix.rust_target }}/release"
           sha256sum spaceapi-dezentrale-client >spaceapi-dezentrale-client.sha256
           sha256sum spaceapi-dezentrale-server >spaceapi-dezentrale-server.sha256
