@@ -57,8 +57,8 @@ jobs:
           #cargo build --bins --target "${{ matrix.rust_target }}" --release
           mkdir -p "target/${{ matrix.rust_target }}/release"
           cd "target/${{ matrix.rust_target }}/release"
-          touch spaceapi-dezentrale-client
-          touch spaceapi-dezentrale-server
+          date > spaceapi-dezentrale-client
+          date > spaceapi-dezentrale-server
           sha256sum spaceapi-dezentrale-client >spaceapi-dezentrale-client.sha256
           sha256sum spaceapi-dezentrale-server >spaceapi-dezentrale-server.sha256
 
