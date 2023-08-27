@@ -8,22 +8,8 @@ on:
       - 'v*'
 
 jobs:
-  release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          draft: false
-          prerelease: false
-
   build:
     name: Build binaries
-    needs: release
     strategy:
       matrix:
         include:
@@ -60,9 +46,23 @@ jobs:
           path: |
             spaceapi-dezentrale-*-${{ matrix.arch }}
 
+  release:
+    name: Create Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: "${{ github.ref }}"
+          release_name: "Release ${{ github.ref }}"
+          draft: false
+          prerelease: true
+
   upload:
     name: Upload binaries to release
-    needs: build
+    needs: release
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@v3
@@ -85,7 +85,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          hub release upload "${{ github.ref }}" \
+          hub release upload "${GITHUB_REF_NAME}" \
             "spaceapi-dezentrale-client-aarch64" \
             "spaceapi-dezentrale-server-aarch64" \
             "spaceapi-dezentrale-client-arm" \
