@@ -32,13 +32,15 @@ jobs:
 
       - name: Cargo build
         run: |
-          export DEBCONF_FRONTEND=noninteractive
-          apt-get update
-          apt-get upgrade --yes
-          apt-get install --yes ${{ matrix.packages }}
-          cargo build --bins --target "${{ matrix.target }}" --release
-          mv "target/${{ matrix.target }}/release/spaceapi-dezentrale-client" "spaceapi-dezentrale-client-${{ matrix.arch }}"
-          mv "target/${{ matrix.target }}/release/spaceapi-dezentrale-server" "spaceapi-dezentrale-server-${{ matrix.arch }}"
+          #export DEBCONF_FRONTEND=noninteractive
+          #apt-get update
+          #apt-get upgrade --yes
+          #apt-get install --yes ${{ matrix.packages }}
+          #cargo build --bins --target "${{ matrix.target }}" --release
+          #mv "target/${{ matrix.target }}/release/spaceapi-dezentrale-client" "spaceapi-dezentrale-client-${{ matrix.arch }}"
+          #mv "target/${{ matrix.target }}/release/spaceapi-dezentrale-server" "spaceapi-dezentrale-server-${{ matrix.arch }}"
+          date > "spaceapi-dezentrale-client-${{ matrix.arch }}"
+          date > "spaceapi-dezentrale-server-${{ matrix.arch }}"
 
       - uses: actions/upload-artifact@v3
         with:
@@ -95,6 +97,15 @@ jobs:
           asset_name: spaceapi-dezentrale-client-x86_64
           asset_content_type: application/x-executable
         
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+        with:
+          upload_url: "${{ steps.create_release.outputs.upload_url }}"
+          asset_path: spaceapi-dezentrale-client-x86_64
+          asset_name: spaceapi-dezentrale-client-x86_64
+          asset_content_type: application/x-executable
+
       - uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
