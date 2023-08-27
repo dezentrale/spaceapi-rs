@@ -1,4 +1,4 @@
-name: Release
+name: Publish release
 
 on:
   push:
@@ -14,7 +14,8 @@ jobs:
     outputs:
       upload_url: "${{ steps.create_release.outputs.upload_url }}"
     steps:
-      - uses: actions/create-release@v1
+      - name: Create release on GitHub
+        uses: actions/create-release@v1
         id: create_release
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
@@ -58,7 +59,8 @@ jobs:
           sha256sum spaceapi-dezentrale-client >spaceapi-dezentrale-client.sha256
           sha256sum spaceapi-dezentrale-server >spaceapi-dezentrale-server.sha256
 
-      - uses: actions/upload-release-asset@v1
+      - name: Append client binary to release page
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
@@ -67,7 +69,8 @@ jobs:
           asset_path: "target/${{ matrix.target }}/release/spaceapi-dezentrale-client"
           asset_content_type: application/x-executable
 
-      - uses: actions/upload-release-asset@v1
+      - name: Append client binary checksum to release page
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
@@ -76,7 +79,8 @@ jobs:
           asset_path: "target/${{ matrix.target }}/release/spaceapi-dezentrale-client.sha256"
           asset_content_type: text/plain
 
-      - uses: actions/upload-release-asset@v1
+      - name: Append server binary to release page
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
@@ -85,7 +89,8 @@ jobs:
           asset_path: "target/${{ matrix.target }}/release/spaceapi-dezentrale-server"
           asset_content_type: text/plain
 
-      - uses: actions/upload-release-asset@v1
+      - name: Append server binary checksum to release page
+        uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
         with:
