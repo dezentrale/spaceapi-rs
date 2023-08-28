@@ -13,6 +13,7 @@
 * Added html output on path `/status/html`
 * Added configuration for text/html outputs
 * Added static build configuration for ARMv6, ARMv7, AArch64, x86-64 for libmusl
+* Added container builds
 
 ## v0.9
 
