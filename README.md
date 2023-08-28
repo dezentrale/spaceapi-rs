@@ -78,13 +78,10 @@ To build the images for *x86-64*:
 
 ```sh
 # Build the server image
-docker build -t spaceapi-dezentrale-server .
+docker build -f docker/Docker.server -t spaceapi-dezentrale-server .
 
 # Build the client image
-docker build \
-    --build-arg PROJECT=spaceapi-dezentrale-client \
-    --build-arg BINARY=target/x86_64-unknown-linux-musl/release/spaceapi-dezentrale-client \
-    --tag spaceapi-dezentrale-client .
+docker build -f docker/Docker.client -t spaceapi-dezentrale-client .
 ```
 
 To build other configurations and architectures take a look into [Dockerfile](Dockerfile) and the [GitHub release workflow](.github/workflows/release.yml).

@@ -1,0 +1,27 @@
+FROM --platform=linux/x86_64 docker.io/library/rust:1.72 AS base
+ENV DEBCONF_FRONTEND=noninteractive
+RUN apt-get update \
+    && apt-get install --yes \
+        gcc-aarch64-linux-gnu \
+        gcc-arm-linux-gnueabihf \
+        musl-tools
+
+FROM --platform=linux/x86_64 base AS builder
+ARG TARGET=x86_64-unknown-linux-musl
+COPY . /usr/src
+WORKDIR /usr/src
+RUN cargo build -p spaceapi-dezentrale-server --bins --target "${TARGET}" --release
+
+FROM scratch
+LABEL org.opencontainers.image.source="https://github.com/dezentrale/spaceapi-rs"
+LABEL org.opencontainers.image.vendor="dezentrale"
+LABEL org.opencontainers.image.base.name="scratch"
+LABEL org.opencontainers.image.description="Server implementation of SpaceAPI"
+LABEL org.opencontainers.image.title="spaceapi-dezentrale-server"
+ARG TARGET=x86_64-unknown-linux-musl
+ENV RUST_LOG=WARN
+ENV CONFIG_FILE=/config.yml
+COPY --from=builder-server  /usr/src/target/$TARGET/release/spaceapi-dezentrale-server /spaceapi-dezentrale-server
+COPY docker/Rocket.toml /Rocket.toml
+EXPOSE 8000
+ENTRYPOINT ["/spaceapi-dezentrale-server"]
