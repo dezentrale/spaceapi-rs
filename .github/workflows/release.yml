@@ -105,6 +105,9 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
+        project:
+          - client
+          - server
         include:
           - arch: aarch64
             rust_target: aarch64-unknown-linux-musl
@@ -132,26 +135,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push client to docker hub
+      - name: Build and push to docker hub
         uses: docker/build-push-action@v4
         with:
           context: .
           build-args: TARGET=${{ matrix.rust_target }}
           platforms: ${{ matrix.docker_platform }}
-          file: docker/Dockerfile.client
+          file: docker/Dockerfile.${{ matrix.project }}
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-client:${{ github.ref_name }}-${{ matrix.arch }}
-
-      - name: Build and push server to docker hub
-        uses: docker/build-push-action@v4
-        with:
-          context: .
-          build-args: TARGET=${{ matrix.rust_target }}
-          platforms: ${{ matrix.docker_platform }}
-          file: docker/Dockerfile.server
-          push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:${{ matrix.arch }}
-            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-server:${{ github.ref_name }}-${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-${{ matrix.project }}:${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-${{ matrix.project }}:${{ github.ref_name }}-${{ matrix.arch }}
