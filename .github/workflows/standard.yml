@@ -18,7 +18,7 @@ jobs:
 
   lint:
     runs-on: ubuntu-latest
-    container: rust:1.72
+    container: rust:1.75
     steps:
       - uses: actions/checkout@v3
       - name: Clippy check
@@ -26,7 +26,7 @@ jobs:
 
   fmt:
     runs-on: ubuntu-latest
-    container: rust:1.72
+    container: rust:1.75
     steps:
       - uses: actions/checkout@v3
       - name: Rustfmt check
@@ -52,7 +52,7 @@ jobs:
             rust_target: x86_64-unknown-linux-gnu
             packages: musl-tools"
     runs-on: ubuntu-latest
-    container: rust:1.72
+    container: rust:1.75
     steps:
       - uses: actions/checkout@v3
 
