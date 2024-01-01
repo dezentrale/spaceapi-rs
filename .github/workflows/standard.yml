@@ -10,7 +10,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
-    container: rust:1.72
+    container: rust:1.75
     steps:
       - uses: actions/checkout@v3
       - name: Unittests
