@@ -6,10 +6,10 @@ async fn main() {
         .author("Alexander Böhm <alexander.boehm@malbolge.net>")
         .version(std::env!("CARGO_PKG_VERSION"))
         .about("A client for changing space status")
-        .subcommand(Command::new("open"))
-        .subcommand(Command::new("close"))
-        .subcommand(Command::new("keep-open"))
-        .subcommand(Command::new("is-open"));
+        .subcommand(Command::new("open").about("Mark space as open"))
+        .subcommand(Command::new("close").about("Mark space as closed"))
+        .subcommand(Command::new("keep-open").about("Heart beat space is still open"))
+        .subcommand(Command::new("is-open").about("Check space status"));
     let args = prog.get_matches();
 
     let base_url = std::env::var("SPACEAPI_URL").expect("Set SPACEAPI_URL");
