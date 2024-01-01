@@ -44,7 +44,7 @@ jobs:
             rust_target: x86_64-unknown-linux-musl
             packages: musl-tools
     runs-on: ubuntu-latest
-    container: rust:1.72
+    container: rust:1.75
     steps:
       - uses: actions/checkout@v2
 
@@ -108,27 +108,27 @@ jobs:
         include:
           - arch: aarch64
             rust_target: aarch64-unknown-linux-musl
-            docker_platform: linux/arm64v8
+            docker_platform: linux/arm64
             project: client
           - arch: aarch64
             rust_target: aarch64-unknown-linux-musl
-            docker_platform: linux/arm64v8
+            docker_platform: linux/arm64
             project: server
           - arch: armv6
             rust_target: arm-unknown-linux-musleabihf
-            docker_platform: linux/arm32v6
+            docker_platform: linux/arm/v6
             project: client
           - arch: armv6
             rust_target: arm-unknown-linux-musleabihf
-            docker_platform: linux/arm32v6
+            docker_platform: linux/arm/v6
             project: server
           - arch: armv7
             rust_target: armv7-unknown-linux-musleabihf
-            docker_platform: linux/arm32v7
+            docker_platform: linux/arm/v7
             project: client
           - arch: armv7
             rust_target: armv7-unknown-linux-musleabihf
-            docker_platform: linux/arm32v7
+            docker_platform: linux/arm/v7
             project: server
           - arch: x86_64
             rust_target: x86_64-unknown-linux-musl
