@@ -15,9 +15,19 @@ publish:
 # Settings for administration
 admin:
   # Enable admin routes
+  # default: false
   enable: true
-  # Set API key for access admin endpoint, if not set a random key will be generated
-  api_key: not-very-secure
+  # Set API key for access admin endpoint, if not set a random key will be
+  # generated
+  # default: generated and printed out
+  #api_key: not-very-secure
+  # Interval (in seconds) between two keep open calls before the space mark
+  # automarically as closed
+  # default: 300
+  keep_open_interval: 300
+  # Check interval (in milliseconds) for automatic state changes
+  tick_interval: 100
+
 
 # Configure status display output
 status_display:

@@ -2,6 +2,7 @@
 
 ## v0.10.0
 
+* Added dead man mechanism (keep open)
 * Refactoring of state handling
 * Refactored module structure
 * Moved API-Key checking into guard implementation
