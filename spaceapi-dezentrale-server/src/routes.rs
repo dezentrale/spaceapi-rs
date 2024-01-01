@@ -31,7 +31,7 @@ impl<'r> FromRequest<'r> for ApiKey {
             }
         }
 
-        Outcome::Failure((Status::Unauthorized, "Api key missing"))
+        Outcome::Error((Status::Unauthorized, "Api key missing"))
     }
 }
 

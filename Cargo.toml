@@ -31,7 +31,7 @@ env_logger = "0.10.0"
 log = "0.4.17"
 rand = "0.8.5"
 reqwest = { version = "0.11.14", features = ["json", "rustls-tls"], default-features = false }
-rocket = { version = "0.5.0-rc.3", features = ["json"] }
+rocket = { version = "0.5.0", features = ["json"] }
 spaceapi-dezentrale = { path = "spaceapi-dezentrale" }
 spaceapi-dezentrale-server = { path = "spaceapi-dezentrale-server" }
 spaceapi = "0.9.0"
