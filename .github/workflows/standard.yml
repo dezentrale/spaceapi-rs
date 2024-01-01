@@ -1,0 +1,73 @@
+name: Standard tasks
+
+on:
+  push:
+    branches:
+      - '**'
+    tags-ignore:
+      - '**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    container: rust:1.75
+    steps:
+      - uses: actions/checkout@v3
+      - name: Unittests
+        run: cargo test
+
+  lint:
+    runs-on: ubuntu-latest
+    container: rust:1.75
+    steps:
+      - uses: actions/checkout@v3
+      - name: Clippy check
+        run: cargo clippy --all-targets --all-features -- -D warnings
+
+  fmt:
+    runs-on: ubuntu-latest
+    container: rust:1.75
+    steps:
+      - uses: actions/checkout@v3
+      - name: Rustfmt check
+        run: cargo fmt --all -- --check
+
+  build:
+    strategy:
+      matrix:
+        include:
+          - arch: aarch64
+            rust_target: aarch64-unknown-linux-musl
+            packages: gcc-aarch64-linux-gnu musl-tools
+          - arch: armv6
+            rust_target: arm-unknown-linux-musleabihf
+            packages: gcc-arm-linux-gnueabihf musl-tools
+          - arch: armv7
+            rust_target: armv7-unknown-linux-musleabihf
+            packages: gcc-arm-linux-gnueabihf musl-tools
+          - arch: x86_64
+            rust_target: x86_64-unknown-linux-musl
+            packages: musl-tools
+          - arch: x86_64
+            rust_target: x86_64-unknown-linux-gnu
+            packages: musl-tools
+    runs-on: ubuntu-latest
+    container: rust:1.75
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build
+        run: |
+          export DEBCONF_FRONTEND=noninteractive
+          apt-get update
+          apt-get upgrade --yes
+          [ "${{ matrix.packages }}" ] && apt-get install --yes ${{ matrix.packages }}
+          cargo build --target "${{ matrix.rust_target }}"
+
+      - name: Archive binaries
+        uses: actions/upload-artifact@v3
+        with:
+          name: spaceapi-dezentrale-server-${{ matrix.arch }}
+          path: |
+            target/${{ matrix.target }}/*/spaceapi-dezentrale-client
+            target/${{ matrix.target }}/*/spaceapi-dezentrale-server
