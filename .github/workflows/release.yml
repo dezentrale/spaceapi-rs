@@ -1,0 +1,165 @@
+name: Publish release
+
+on:
+  push:
+    branches-ignore:
+      - '*'
+    tags:
+      - '*'
+
+jobs:
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    outputs:
+      upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create release on GitHub
+        uses: actions/create-release@v1
+        id: create_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref_name }}
+          draft: false
+          prerelease: false
+
+  binaries:
+    name: Build binaries
+    needs: release
+    strategy:
+      matrix:
+        include:
+          - arch: aarch64
+            rust_target: aarch64-unknown-linux-musl
+            packages: gcc-aarch64-linux-gnu musl-tools
+          - arch: armv6
+            rust_target: arm-unknown-linux-musleabihf
+            packages: gcc-arm-linux-gnueabihf musl-tools
+          - arch: armv7
+            rust_target: armv7-unknown-linux-musleabihf
+            packages: gcc-arm-linux-gnueabihf musl-tools
+          - arch: x86_64
+            rust_target: x86_64-unknown-linux-musl
+            packages: musl-tools
+    runs-on: ubuntu-latest
+    container: rust:1.75
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Cargo build
+        run: |
+          export DEBCONF_FRONTEND=noninteractive
+          apt-get update
+          apt-get upgrade --yes
+          apt-get install --yes ${{ matrix.packages }}
+          cargo build --bins --target "${{ matrix.rust_target }}" --release
+          cd "target/${{ matrix.rust_target }}/release"
+          sha256sum spaceapi-dezentrale-client >spaceapi-dezentrale-client.sha256
+          sha256sum spaceapi-dezentrale-server >spaceapi-dezentrale-server.sha256
+
+      - name: Append client binary to release page
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_name: spaceapi-dezentrale-client-${{ matrix.arch }}
+          asset_path: target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-client
+          asset_content_type: application/x-executable
+
+      - name: Append client binary checksum to release page
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_name: spaceapi-dezentrale-client-${{ matrix.arch }}.sha256
+          asset_path: target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-client.sha256
+          asset_content_type: text/plain
+
+      - name: Append server binary to release page
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_name: spaceapi-dezentrale-server-${{ matrix.arch }}
+          asset_path: target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-server
+          asset_content_type: application/x-executable
+
+      - name: Append server binary checksum to release page
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.release.outputs.upload_url }}
+          asset_name: spaceapi-dezentrale-server-${{ matrix.arch }}.sha256
+          asset_path: target/${{ matrix.rust_target }}/release/spaceapi-dezentrale-server.sha256
+          asset_content_type: text/plain
+
+  container:
+    name: Build images
+    needs: release 
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - arch: aarch64
+            rust_target: aarch64-unknown-linux-musl
+            docker_platform: linux/arm64
+            project: client
+          - arch: aarch64
+            rust_target: aarch64-unknown-linux-musl
+            docker_platform: linux/arm64
+            project: server
+          - arch: armv6
+            rust_target: arm-unknown-linux-musleabihf
+            docker_platform: linux/arm/v6
+            project: client
+          - arch: armv6
+            rust_target: arm-unknown-linux-musleabihf
+            docker_platform: linux/arm/v6
+            project: server
+          - arch: armv7
+            rust_target: armv7-unknown-linux-musleabihf
+            docker_platform: linux/arm/v7
+            project: client
+          - arch: armv7
+            rust_target: armv7-unknown-linux-musleabihf
+            docker_platform: linux/arm/v7
+            project: server
+          - arch: x86_64
+            rust_target: x86_64-unknown-linux-musl
+            docker_platform: linux/amd64
+            project: client
+          - arch: x86_64
+            rust_target: x86_64-unknown-linux-musl
+            docker_platform: linux/amd64
+            project: server
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v2
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Build and push to docker hub
+        uses: docker/build-push-action@v4
+        with:
+          context: .
+          build-args: TARGET=${{ matrix.rust_target }}
+          platforms: ${{ matrix.docker_platform }}
+          file: docker/Dockerfile.${{ matrix.project }}
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-${{ matrix.project }}:${{ matrix.arch }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/spaceapi-dezentrale-${{ matrix.project }}:${{ github.ref_name }}-${{ matrix.arch }}

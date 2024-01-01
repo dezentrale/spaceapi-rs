@@ -8,6 +8,7 @@ async fn main() {
         .about("A client for changing space status")
         .subcommand(Command::new("open"))
         .subcommand(Command::new("close"))
+        .subcommand(Command::new("keep-open"))
         .subcommand(Command::new("is-open"));
     let args = prog.get_matches();
 
@@ -32,6 +33,13 @@ async fn main() {
             } else {
                 println!("closed");
             }
+        }
+        Some("keep-open") => {
+            client
+                .keep_open()
+                .await
+                .map(|till| println!("Space is open till {till:?}"))
+                .expect("Request failed");
         }
         Some(other) => {
             println!("Unknown command `{other}`");

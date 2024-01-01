@@ -1,0 +1,5 @@
+/target
+!target/x86_64-unknown-linux-musl/debug/spaceapi-dezentrale-server
+!target/aarch64-unknown-linux-musl/debug/spaceapi-dezentrale-server
+!target/x86_64-unknown-linux-musl/release/spaceapi-dezentrale-server
+!target/aarch64-unknown-linux-musl/release/spaceapi-dezentrale-server
